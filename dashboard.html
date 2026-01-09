@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <script src="assets/js/guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - EduPlatform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center sticky top-0 z-10">
+        <div class="flex items-center gap-2 text-xl font-bold text-indigo-600">
+            <span>🎯</span> EduPlatform
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="userName" class="text-gray-700 font-medium">O'quvchi</span>
+            <button id="logoutBtn" class="p-2 text-gray-400 hover:text-red-500 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto p-6 space-y-8">
+        <!-- Profile & Streak Header -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div
+                class="md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-900">Xayrli kun, <span id="welcomeName">O'quvchi</span>! 👋
+                    </h2>
+                    <p class="text-gray-500 mt-2">Bugungi o'rganish marrangizni zabt etishga tayyormisiz?</p>
+                </div>
+                <div class="hidden sm:block text-6xl">🚀</div>
+            </div>
+
+            <div
+                class="bg-gradient-to-br from-orange-400 to-red-500 p-8 rounded-3xl shadow-lg text-white text-center flex flex-col justify-center items-center">
+                <div class="text-4xl mb-2">🔥</div>
+                <div class="text-4xl font-bold" id="streakCount">0</div>
+                <div class="uppercase tracking-widest text-sm opacity-90">Kunlik Streak</div>
+            </div>
+        </div>
+
+        <!-- Progress Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div
+                class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center">
+                <div class="relative flex items-center justify-center mb-4">
+                    <svg class="w-24 h-24 transform -rotate-90">
+                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent"
+                            class="text-gray-100" />
+                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent"
+                            id="progressCircle" stroke-dasharray="251.2" stroke-dashoffset="251.2"
+                            class="text-indigo-600 transition-all duration-1000" />
+                    </svg>
+                    <span class="absolute text-xl font-bold text-gray-800"><span id="progressText">0</span>%</span>
+                </div>
+                <p class="text-gray-600 font-medium">Umumiy progress</p>
+            </div>
+
+            <div class="md:col-span-3 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+                <h3 class="text-lg font-bold text-gray-800 mb-4">Bugungi topshiriq (3-5 daqiqa)</h3>
+                <div id="dailyTask"
+                    class="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-2xl">
+                            📖</div>
+                        <div>
+                            <p class="font-bold text-gray-900" id="taskTitle">Yangi mavzu: Kirish</p>
+                            <p class="text-sm text-gray-500">Mavzuni o'qing va 3 ta savolga javob bering</p>
+                        </div>
+                    </div>
+                    <button
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">Boshlash</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Subjects List -->
+        <div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Mening fanlarim</h3>
+            <div id="subjectsList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Subjects will be loaded here -->
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="assets/js/dashboard.js"></script>
+</body>
+
+</html>
