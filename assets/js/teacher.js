@@ -69,7 +69,7 @@ async function processExcelData(data) {
     }
 
     const firstRow = data[0];
-    const required = ["Fan", "Mavzu", "Tartib"];
+    const required = ["Fan", "Tartib", "Mavzu", "UygaVazifa"];
     const missing = required.filter(col => !(col in firstRow));
 
     if (missing.length > 0) {
@@ -77,29 +77,48 @@ async function processExcelData(data) {
         return;
     }
 
-    alert(`${data.length} ta satr aniqlandi. Tizimga yuklanmoqda...`);
-
-    // Save to Firebase (Simplified logic for MVP)
     const user = auth.currentUser;
-    if (user) {
-        try {
-            for (const row of data) {
-                if (!row.Fan || !row.Mavzu || !row.Tartib) continue;
+    if (!user) return;
 
-                const subjectRef = ref(db, `subjects/${row.Fan.toLowerCase()}/lessons/${row.Tartib}`);
-                await set(subjectRef, {
-                    title: row.Mavzu,
-                    order: row.Tartib,
-                    duration: row.Soat || 0,
-                    uploadedBy: user.uid
-                });
-            }
-            alert("Ma'lumotlar muvaffaqiyatli saqlandi!");
-            loadTeacherSubjects();
-        } catch (e) {
-            console.error("Upload error", e);
-            alert("Yuklashda xatolik yuz berdi!");
+    try {
+        alert(`${data.length} ta dars aniqlandi. O'quv reja yangilanmoqda...`);
+
+        // Group by subject to update paths
+        const subjectsData = {};
+
+        for (const row of data) {
+            const subjId = row.Fan.toLowerCase();
+            if (!subjectsData[subjId]) subjectsData[subjId] = [];
+
+            // Build lesson object
+            const lessonId = parseInt(row.Tartib);
+            const lessonData = {
+                id: lessonId,
+                subjectId: subjId,
+                title: row.Mavzu,
+                content: row.UygaVazifa,
+                icon: "📚", // Default icon for uploaded lessons
+                uploadedBy: user.uid,
+                timestamp: Date.now()
+            };
+
+            // Save individual lesson
+            await set(ref(db, `dynamic_lessons/${subjId}/${lessonId}`), lessonData);
+            subjectsData[subjId].push(lessonId);
         }
+
+        // Update subject paths (Duolingo-style order)
+        for (const subjId in subjectsData) {
+            const sortedPath = subjectsData[subjId].sort((a, b) => a - b);
+            await set(ref(db, `dynamic_subjects/${subjId}/path`), sortedPath);
+            await set(ref(db, `dynamic_subjects/${subjId}/name`), subjId === 'math' ? 'Matematika' : (subjId === 'english' ? 'Ingliz tili' : subjId));
+        }
+
+        alert("O'quv reja muvaffaqiyatli yuklandi! 🎉");
+        loadTeacherSubjects();
+    } catch (e) {
+        console.error("Upload error", e);
+        alert("Yuklashda xatolik yuz berdi: " + e.message);
     }
 }
 
