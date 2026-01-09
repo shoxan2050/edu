@@ -1,0 +1,120 @@
+[
+    {
+        "lessonId": 1,
+        "subjectId": "math",
+        "questions": [
+            {
+                "id": 101,
+                "type": "mcq",
+                "difficulty": "oson",
+                "question": "Sanash uchun ishlatiladigan sonlar nima deyiladi?",
+                "options": [
+                    "Natural sonlar",
+                    "Manfiy sonlar",
+                    "Murakkab sonlar"
+                ],
+                "correct": 0
+            },
+            {
+                "id": 102,
+                "type": "tf",
+                "difficulty": "o'rtacha",
+                "question": "0 natural son hisoblanadimi?",
+                "options": [
+                    "Ha",
+                    "Yo'q"
+                ],
+                "correct": 1
+            }
+        ]
+    },
+    {
+        "lessonId": 2,
+        "subjectId": "math",
+        "questions": [
+            {
+                "id": 201,
+                "type": "mcq",
+                "difficulty": "oson",
+                "question": "2 + 3 nechaga teng?",
+                "options": [
+                    "4",
+                    "5",
+                    "6"
+                ],
+                "correct": 1
+            }
+        ]
+    },
+    {
+        "lessonId": 3,
+        "subjectId": "math",
+        "questions": [
+            {
+                "id": 301,
+                "type": "mcq",
+                "difficulty": "o'rtacha",
+                "question": "4 * 3 nechaga teng?",
+                "options": [
+                    "7",
+                    "12",
+                    "15"
+                ],
+                "correct": 1
+            }
+        ]
+    },
+    {
+        "lessonId": 4,
+        "subjectId": "math",
+        "questions": [
+            {
+                "id": 401,
+                "type": "mcq",
+                "difficulty": "qiyin",
+                "question": "10 / 2 nechaga teng?",
+                "options": [
+                    "5",
+                    "2",
+                    "10"
+                ],
+                "correct": 0
+            }
+        ]
+    },
+    {
+        "lessonId": 5,
+        "subjectId": "english",
+        "questions": [
+            {
+                "id": 501,
+                "type": "mcq",
+                "difficulty": "oson",
+                "question": "'Hello' so'zining ma'nosi?",
+                "options": [
+                    "Xayr",
+                    "Salom"
+                ],
+                "correct": 1
+            }
+        ]
+    },
+    {
+        "lessonId": 6,
+        "subjectId": "english",
+        "questions": [
+            {
+                "id": 601,
+                "type": "mcq",
+                "difficulty": "oson",
+                "question": "'One' qaysi son?",
+                "options": [
+                    "1",
+                    "2",
+                    "3"
+                ],
+                "correct": 0
+            }
+        ]
+    }
+]
