@@ -68,9 +68,17 @@ async function processExcelData(data) {
         return;
     }
 
+    // Normalize keys logic
+    const normalize = (s) => s.toString().replace(/\s+/g, '').toLowerCase();
+
     const firstRow = data[0];
-    const required = ["Fan", "Tartib", "Mavzu", "UygaVazifa"];
-    const missing = required.filter(col => !(col in firstRow));
+    const keyMap = {}; // normalized -> original
+    Object.keys(firstRow).forEach(key => {
+        keyMap[normalize(key)] = key;
+    });
+
+    const required = ["fan", "tartib", "mavzu", "uygavazifa"];
+    const missing = required.filter(col => !(col in keyMap));
 
     if (missing.length > 0) {
         alert(`Xato! Quyidagi ustunlar topilmadi: ${missing.join(", ")}`);
@@ -87,17 +95,17 @@ async function processExcelData(data) {
         const subjectsData = {};
 
         for (const row of data) {
-            const subjId = row.Fan.toLowerCase();
+            const subjId = row[keyMap["fan"]].toString().toLowerCase();
             if (!subjectsData[subjId]) subjectsData[subjId] = [];
 
             // Build lesson object
-            const lessonId = parseInt(row.Tartib);
+            const lessonId = parseInt(row[keyMap["tartib"]]);
             const lessonData = {
                 id: lessonId,
                 subjectId: subjId,
-                title: row.Mavzu,
-                content: row.UygaVazifa,
-                icon: "📚", // Default icon for uploaded lessons
+                title: row[keyMap["mavzu"]],
+                content: row[keyMap["uygavazifa"]],
+                icon: "📚",
                 uploadedBy: user.uid,
                 timestamp: Date.now()
             };
@@ -107,7 +115,7 @@ async function processExcelData(data) {
             subjectsData[subjId].push(lessonId);
         }
 
-        // Update subject paths (Duolingo-style order)
+        // Update subject paths
         for (const subjId in subjectsData) {
             const sortedPath = subjectsData[subjId].sort((a, b) => a - b);
             await set(ref(db, `dynamic_subjects/${subjId}/path`), sortedPath);
