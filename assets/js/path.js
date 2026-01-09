@@ -13,13 +13,43 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     try {
-        const [subjectsRes, lessonsRes] = await Promise.all([
+        const [subjectsRes, lessonsRes, dynSubjsSnap, dynLessonsSnap] = await Promise.all([
             fetch('data/subjects.json'),
-            fetch('data/lessons.json')
+            fetch('data/lessons.json'),
+            get(ref(db, 'dynamic_subjects')),
+            get(ref(db, 'dynamic_lessons'))
         ]);
 
-        const subjects = await subjectsRes.json();
-        const allLessons = await lessonsRes.json();
+        let subjects = await subjectsRes.json();
+        let allLessons = await lessonsRes.json();
+
+        // Merge dynamic subjects
+        if (dynSubjsSnap.exists()) {
+            const dynamicSubjects = dynSubjsSnap.val();
+            Object.keys(dynamicSubjects).forEach(id => {
+                const existingIdx = subjects.findIndex(s => s.id === id);
+                if (existingIdx !== -1) {
+                    subjects[existingIdx].path = dynamicSubjects[id].path;
+                } else {
+                    subjects.push({ id, ...dynamicSubjects[id] });
+                }
+            });
+        }
+
+        // Merge dynamic lessons
+        if (dynLessonsSnap.exists()) {
+            const dynamicLessons = dynLessonsSnap.val();
+            Object.values(dynamicLessons).forEach(subjLessons => {
+                Object.values(subjLessons).forEach(lesson => {
+                    const existingIdx = allLessons.findIndex(l => l.id === lesson.id && l.subjectId === lesson.subjectId);
+                    if (existingIdx !== -1) {
+                        allLessons[existingIdx] = lesson;
+                    } else {
+                        allLessons.push(lesson);
+                    }
+                });
+            });
+        }
 
         const subject = subjects.find(s => s.id === subjectId);
 
