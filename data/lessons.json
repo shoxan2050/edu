@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1,
+        "subjectId": "math",
+        "title": "Sonlar bilan tanishish",
+        "icon": "🔢",
+        "content": "Sonlar bizning hayotimizda juda muhim. Ular narsalarni sanash va miqdorini aniqlash uchun ishlatiladi.",
+        "example": "1, 2, 3... bular natural sonlar deyiladi."
+    },
+    {
+        "id": 2,
+        "subjectId": "math",
+        "title": "Qo'shish va Ayirish",
+        "icon": "➕",
+        "content": "Qo'shish - bu ikki miqdorni bitta butunga birlashtirish jarayoni.",
+        "example": "2 + 3 = 5"
+    },
+    {
+        "id": 3,
+        "subjectId": "math",
+        "title": "Ko'paytirish",
+        "icon": "✖️",
+        "content": "Ko'paytirish - bu bir xil sonlarni bir necha marta qo'shishning qisqacha usulidir.",
+        "example": "4 * 3 = 12 (ya'ni 4+4+4)"
+    },
+    {
+        "id": 4,
+        "subjectId": "math",
+        "title": "Bo'lish",
+        "icon": "➗",
+        "content": "Bo'lish - bu butunni teng qismlarga taqsimlash jarayoni.",
+        "example": "10 / 2 = 5"
+    },
+    {
+        "id": 5,
+        "subjectId": "english",
+        "title": "Alphabet & Greetings",
+        "icon": "🔤",
+        "content": "Language learning starts with the alphabet and basic greetings like 'Hello' and 'Hi'.",
+        "example": "A is for Apple, B is for Boy."
+    },
+    {
+        "id": 6,
+        "subjectId": "english",
+        "title": "Numbers & Counting",
+        "icon": "🔢",
+        "content": "Learning numbers in English is essential for everyday conversations.",
+        "example": "Zero, One, Two, Three..."
+    }
+]
