@@ -13,14 +13,25 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     try {
-        const [lessonsRes, subjectsRes] = await Promise.all([
+        const subjectId = urlParams.get('subject') || 'math';
+
+        const [lessonsRes, subjectsRes, dynLessonSnap] = await Promise.all([
             fetch('data/lessons.json'),
-            fetch('data/subjects.json')
+            fetch('data/subjects.json'),
+            get(ref(db, `dynamic_lessons/${subjectId}/${lessonId}`))
         ]);
-        const lessons = await lessonsRes.json();
+
+        let lessons = await lessonsRes.json();
         const subjects = await subjectsRes.json();
 
-        const subjectId = urlParams.get('subject') || 'math';
+        // Merge dynamic lesson if it exists
+        if (dynLessonSnap.exists()) {
+            const dynLesson = dynLessonSnap.val();
+            const idx = lessons.findIndex(l => l.id === lessonId && l.subjectId === subjectId);
+            if (idx !== -1) lessons[idx] = dynLesson;
+            else lessons.push(dynLesson);
+        }
+
         const lesson = lessons.find(l => l.id === lessonId && l.subjectId === subjectId);
         const subject = subjects.find(s => s.id === subjectId);
 
