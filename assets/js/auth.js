@@ -27,7 +27,7 @@ const getFriendlyErrorMessage = (code) => {
 };
 
 // Toast Notification Utility
-const showToast = (message, type = 'success') => {
+export const showToast = (message, type = 'success') => {
     const toast = document.createElement('div');
     toast.className = `fixed bottom-5 right-5 px-6 py-3 rounded-2xl text-white font-bold shadow-2xl transform transition-all duration-300 translate-y-20 z-[100] ${type === 'success' ? 'bg-emerald-500' : 'bg-red-500'
         }`;
@@ -41,7 +41,7 @@ const showToast = (message, type = 'success') => {
 };
 
 // Loading State Utility
-const setBtnLoading = (btn, isLoading) => {
+export const setBtnLoading = (btn, isLoading) => {
     if (isLoading) {
         btn.dataset.originalText = btn.innerHTML;
         btn.disabled = true;
