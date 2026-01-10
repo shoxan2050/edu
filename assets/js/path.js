@@ -1,63 +1,39 @@
 import { auth, db } from './firebase.js';
 import { ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { showToast } from './auth.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const subjectId = urlParams.get('subject') || 'math';
+const container = document.getElementById('pathContainer');
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         localStorage.removeItem("user");
-        window.location.href = "login.html";
         return;
     }
 
+    // Loading State
+    if (container) {
+        container.innerHTML = `
+            <div class="col-span-full py-20 flex flex-col items-center gap-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+                <p class="text-gray-400 font-medium">Yo'l xaritasi tayyorlanmoqda...</p>
+            </div>
+        `;
+    }
+
     try {
-        const [subjectsRes, lessonsRes, dynSubjsSnap, dynLessonsSnap] = await Promise.all([
-            fetch('data/subjects.json'),
-            fetch('data/lessons.json'),
-            get(ref(db, 'dynamic_subjects')),
-            get(ref(db, 'dynamic_lessons'))
+        const [subjSnap, userSnap] = await Promise.all([
+            get(ref(db, `subjects/${subjectId}`)),
+            get(ref(db, `users/${user.uid}`))
         ]);
 
-        let subjects = await subjectsRes.json();
-        let allLessons = await lessonsRes.json();
-
-        // Merge dynamic subjects
-        if (dynSubjsSnap.exists()) {
-            const dynamicSubjects = dynSubjsSnap.val();
-            Object.keys(dynamicSubjects).forEach(id => {
-                const existingIdx = subjects.findIndex(s => s.id === id);
-                if (existingIdx !== -1) {
-                    subjects[existingIdx].path = dynamicSubjects[id].path;
-                } else {
-                    subjects.push({ id, ...dynamicSubjects[id] });
-                }
-            });
-        }
-
-        // Merge dynamic lessons
-        if (dynLessonsSnap.exists()) {
-            const dynamicLessons = dynLessonsSnap.val();
-            Object.values(dynamicLessons).forEach(subjLessons => {
-                Object.values(subjLessons).forEach(lesson => {
-                    const existingIdx = allLessons.findIndex(l => l.id === lesson.id && l.subjectId === lesson.subjectId);
-                    if (existingIdx !== -1) {
-                        allLessons[existingIdx] = lesson;
-                    } else {
-                        allLessons.push(lesson);
-                    }
-                });
-            });
-        }
-
-        const subject = subjects.find(s => s.id === subjectId);
-
-        if (!subject) {
+        if (!subjSnap.exists()) {
             document.getElementById('subjectTitle').textContent = "Fan topilmadi";
-            document.getElementById('pathContainer').innerHTML = `
+            container.innerHTML = `
                 <div class="col-span-full py-20 text-center">
-                    <p class="text-xl text-gray-500 mb-6">Ushbu fan topilmadi yoki hali qo'shilmagan. 🤷‍♂️</p>
+                    <p class="text-xl text-gray-500 mb-6">Ushbu fan hali qo'shilmagan. 🤷‍♂️</p>
                     <a href="dashboard.html" class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold transition shadow-lg shadow-indigo-200">
                         Bosh sahifaga qaytish
                     </a>
@@ -66,92 +42,98 @@ onAuthStateChanged(auth, async (user) => {
             return;
         }
 
-        const subjectLessons = subject.path.map(id => allLessons.find(l => l.id === id)).filter(Boolean);
+        const subject = subjSnap.val();
+        document.getElementById('subjectTitle').textContent = subject.name;
 
-        // Get user progress to unlock nodes
-        const snapshot = await get(ref(db, `users/${user.uid}`));
-        const userData = snapshot.val() || {};
-        const progress = userData.progress || {};
+        const userData = userSnap.exists() ? userSnap.val() : {};
+        const userProgress = userData.progress || {};
+        const userClass = parseInt(userData.sinf) || 0;
 
-        renderPath(subject, subjectLessons, progress);
-    } catch (e) {
-        console.error("Path load error", e);
+        // Use the 'path' array defined by the teacher as the source of truth for ordering
+        const lessonsObj = subject.lessons || {};
+        const pathOrder = subject.path || [];
+
+        // Build sorted and filtered list
+        const studentLessons = [];
+        pathOrder.forEach(uuid => {
+            const lesson = lessonsObj[uuid];
+            if (lesson) {
+                // If lesson has a sinf assigned, check if it matches student class
+                // Or if it has no sinf (legacy), include it
+                if (!lesson.sinf || lesson.sinf === userClass) {
+                    studentLessons.push(lesson);
+                }
+            }
+        });
+
+        renderPath(subjectId, studentLessons, userProgress);
+    } catch (error) {
+        console.error("Path load error", error);
+        showToast("Xarita yuklashda xatolik! ❌", 'error');
     }
 });
 
-function renderPath(subject, lessons, userProgress) {
-    const container = document.getElementById('pathContainer');
-    document.getElementById('subjectTitle').textContent = subject ? subject.name : "Fan Yo'li";
+function renderPath(subjId, lessons, userProgress) {
+    if (!container) return;
 
-    const subjectProgress = userProgress[subjectId] || {};
+    if (lessons.length === 0) {
+        container.innerHTML = `<div class="col-span-full py-20 text-center text-gray-400">Hali darslar yo'q.</div>`;
+        return;
+    }
+
+    const subjectProgress = userProgress[subjId] || {};
 
     container.innerHTML = lessons.map((lesson, index) => {
-        const marginClass = index % 2 === 0 ? 'ml-0' : (index % 4 === 1 ? 'ml-20' : 'mr-20');
-
-        // Logic for status
-        let status = 'locked';
+        const score = subjectProgress[lesson.id] || 0;
         const prevLessonId = index > 0 ? lessons[index - 1].id : null;
-        const prevLessonProgress = prevLessonId ? (subjectProgress[prevLessonId] || 0) : 100;
+        const prevScore = prevLessonId ? subjectProgress[prevLessonId] : 100;
 
-        if (index === 0 || prevLessonProgress >= 80) {
-            status = (subjectProgress[lesson.id] || 0) >= 80 ? 'completed' : 'active';
-        }
+        let status = 'locked';
+        if (score >= 80) status = 'completed';
+        else if (index === 0 || prevScore >= 80) status = 'current';
+
+        const marginClass = index % 2 === 0 ? 'ml-0' : (index % 4 === 1 ? 'ml-24' : (index % 4 === 3 ? '-ml-24' : 'ml-0'));
 
         return `
-            <div class="path-node flex flex-col items-center ${marginClass} cursor-pointer" 
+            <div class="path-node flex flex-col items-center ${marginClass} cursor-pointer group" 
                  data-id="${lesson.id}" 
-                 data-status="${status}" 
-                 data-title="${lesson.title}" 
-                 data-desc="${(lesson.content || '').substring(0, 100)}..." 
-                 data-icon="${lesson.icon}">
-                <div class="node-circle ${getNodeStatusClass(status)}">
-                    ${status === 'locked' ? '🔒' : lesson.icon}
+                 data-status="${status}">
+                <div class="node-circle ${getNodeStatusClass(status)} relative">
+                    ${status === 'locked' ? '🔒' : (lesson.icon || '📚')}
+                    ${status === 'completed' ? `
+                        <div class="absolute -top-1 -right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white">
+                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+                        </div>
+                    ` : ''}
                 </div>
-                <p class="mt-3 font-semibold text-gray-700">${lesson.title}</p>
+                <div class="mt-3 text-center transition group-hover:scale-105">
+                    <span class="text-sm font-bold text-gray-700 block">${lesson.title}</span>
+                    <span class="text-xs text-gray-400 uppercase tracking-tighter">${status === 'completed' ? 'Tugatildi' : (status === 'locked' ? 'Bekulangan' : 'Boshlash')}</span>
+                </div>
             </div>
         `;
     }).join('');
 
-    // Event delegation for nodes
     container.onclick = (e) => {
         const node = e.target.closest('.path-node');
         if (!node) return;
 
-        const { id, status, title, desc, icon } = node.dataset;
-        handleNodeClick(parseInt(id), status, title, desc, icon);
+        const id = node.dataset.id;
+        const status = node.dataset.status;
+
+        if (status === 'locked') {
+            showToast("Ushbu dars qulflangan! Oldingi darsni 80% dan yuqori yakunlang. 🔒", 'error');
+            return;
+        }
+
+        window.location.href = `lesson.html?subject=${subjId}&lesson=${id}`;
     };
 }
 
 function getNodeStatusClass(status) {
-    if (status === 'completed') return 'node-completed';
-    if (status === 'active') return 'node-active';
-    return 'node-locked';
-}
-
-function handleNodeClick(id, status, title, desc, icon) {
-    if (status === 'locked') {
-        const toast = document.createElement('div');
-        toast.className = "fixed bottom-5 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-2xl font-bold shadow-xl animate-bounce";
-        toast.textContent = "Bu dars hali yopiq! 🔒";
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
-        return;
+    switch (status) {
+        case 'completed': return 'bg-emerald-500 text-white border-emerald-600 shadow-emerald-200';
+        case 'current': return 'bg-indigo-600 text-white border-indigo-700 shadow-xl scale-110 ring-4 ring-indigo-100';
+        default: return 'bg-white text-gray-300 border-gray-200 opacity-60 grayscale';
     }
-
-    const modal = document.getElementById('lessonModal');
-    document.getElementById('modalTitle').textContent = title;
-    document.getElementById('modalDesc').textContent = desc;
-    document.getElementById('modalIcon').textContent = icon;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
-    document.getElementById('startLessonBtn').onclick = () => {
-        window.location.href = `lesson.html?subject=${subjectId}&lesson=${id}`;
-    };
 }
-
-document.getElementById('closeModalBtn').onclick = () => {
-    const modal = document.getElementById('lessonModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-};
