@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/fi
 
 const urlParams = new URLSearchParams(window.location.search);
 const lessonId = parseInt(urlParams.get('lesson')) || 1;
+const subjectId = urlParams.get('subject') || 'math';
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
@@ -13,44 +14,27 @@ onAuthStateChanged(auth, async (user) => {
     }
 
     try {
-        const subjectId = urlParams.get('subject') || 'math';
+        // Fetch specific Lesson from Firebase (Single Source of Truth)
+        const lessonSnap = await get(ref(db, `subjects/${subjectId}/lessons/${lessonId}`));
 
-        const [lessonsRes, subjectsRes, dynLessonSnap] = await Promise.all([
-            fetch('data/lessons.json'),
-            fetch('data/subjects.json'),
-            get(ref(db, `dynamic_lessons/${subjectId}/${lessonId}`))
-        ]);
+        if (lessonSnap.exists()) {
+            const lesson = lessonSnap.val();
+            lesson.id = lessonId; // Ensure ID is present
 
-        let lessons = await lessonsRes.json();
-        const subjects = await subjectsRes.json();
+            // Get user progress for this specific lesson
+            const progressSnap = await get(ref(db, `users/${user.uid}/progress/${subjectId}/${lessonId}`));
+            const score = progressSnap.val() || 0;
+            const progressPercent = score >= 80 ? 100 : 0;
 
-        // Merge dynamic lesson if it exists
-        if (dynLessonSnap.exists()) {
-            const dynLesson = dynLessonSnap.val();
-            const idx = lessons.findIndex(l => l.id === lessonId && l.subjectId === subjectId);
-            if (idx !== -1) lessons[idx] = dynLesson;
-            else lessons.push(dynLesson);
-        }
+            renderLesson(lesson, progressPercent);
 
-        const lesson = lessons.find(l => l.id === lessonId && l.subjectId === subjectId);
-        const subject = subjects.find(s => s.id === subjectId);
-
-        if (lesson && subject) {
-            // Update back link with subject param
+            // Update back link
             const backLink = document.getElementById('backToPath');
             if (backLink) backLink.href = `path.html?subject=${subjectId}`;
-
-            // Get user progress to check if passed
-            const snapshot = await get(ref(db, `users/${user.uid}/progress/${subject.id}/${lessonId}`));
-            const score = snapshot.val() || 0;
-
-            // Binary progress: 100% if passed, 0% otherwise
-            const progress = score >= 80 ? 100 : 0;
-            renderLesson(lesson, progress);
         } else {
             // Fallback UI
             document.getElementById('lessonTitle').textContent = "Dars topilmadi";
-            document.getElementById('lessonText').textContent = "Ushbu dars topilmadi yoki xato fanga tegishli. 🤷‍♂️";
+            document.getElementById('lessonText').textContent = "Ushbu dars topilmadi yoki hali yuklanmagan. 🤷‍♂️";
             document.getElementById('lessonIcon').textContent = "❌";
             document.getElementById('interactiveArea').classList.add('hidden');
             const nextBtn = document.getElementById('nextBtn');
@@ -67,30 +51,30 @@ function renderLesson(lesson, progress) {
 
     document.getElementById('lessonProgress').style.width = `${progress}%`;
     document.getElementById('lessonTitle').textContent = lesson.title;
-    document.getElementById('lessonIcon').textContent = lesson.icon;
+    document.getElementById('lessonIcon').textContent = lesson.icon || "📚";
 
     const textContainer = document.getElementById('lessonText');
-    textContainer.textContent = ''; // Clear
+    textContainer.textContent = ''; // Clear existing
 
     const p = document.createElement('p');
-    p.textContent = lesson.content;
+    p.textContent = `Mavzu: ${lesson.title}`;
+    p.className = "text-xl font-bold mb-4";
     textContainer.appendChild(p);
 
-    const exampleDiv = document.createElement('div');
-    exampleDiv.className = "mt-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 italic";
+    const homeworkDiv = document.createElement('div');
+    homeworkDiv.className = "mt-8 p-6 bg-indigo-50 rounded-2xl border border-indigo-100 italic";
 
     const strong = document.createElement('strong');
-    strong.textContent = "Misol: ";
-    exampleDiv.appendChild(strong);
+    strong.textContent = "Vazifa: ";
+    homeworkDiv.appendChild(strong);
 
     const span = document.createElement('span');
-    span.textContent = lesson.example;
-    exampleDiv.appendChild(span);
+    span.textContent = lesson.homework || "Hali vazifa qo'shilmagan.";
+    homeworkDiv.appendChild(span);
 
-    textContainer.appendChild(exampleDiv);
+    textContainer.appendChild(homeworkDiv);
 
     document.getElementById('nextBtn').onclick = () => {
-        const subjectId = urlParams.get('subject') || 'math';
         window.location.href = `test.html?subject=${subjectId}&lesson=${lesson.id}`;
     };
 }
