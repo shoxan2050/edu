@@ -1,0 +1,44 @@
+{
+    "rules": {
+        ".read": false,
+        ".write": false,
+        "users": {
+            "$uid": {
+                ".read": "auth != null && auth.uid === $uid",
+                ".write": "auth != null && auth.uid === $uid",
+                "role": {
+                    ".write": false
+                },
+                "active_tests": {
+                    ".write": "auth != null && auth.uid === $uid"
+                },
+                "progress": {
+                    "$subjectId": {
+                        "$lessonId": {
+                            ".write": "auth != null && auth.uid === $uid"
+                        }
+                    }
+                }
+            }
+        },
+        "subjects": {
+            "$subjectId": {
+                ".read": "auth != null && (!data.child('classes').exists() || data.child('classes').hasChild(root.child('users').child(auth.uid).child('sinf').val().toString()) || root.child('users').child(auth.uid).child('role').val() === 'teacher')",
+                ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'teacher'",
+                "lessons": {
+                    "$lessonId": {
+                        ".read": "auth != null && (!data.child('sinf').exists() || data.child('sinf').val() === root.child('users').child(auth.uid).child('sinf').val() || root.child('users').child(auth.uid).child('role').val() === 'teacher')"
+                    }
+                }
+            }
+        },
+        "tests": {
+            ".read": false,
+            ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'teacher'"
+        },
+        "logs": {
+            ".read": false,
+            ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'teacher'"
+        }
+    }
+}

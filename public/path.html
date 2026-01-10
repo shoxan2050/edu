@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sizning Yo'lingiz - EduPlatform</title>
+    <script type="module" src="assets/js/guard.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .path-node {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .path-node:active {
+            transform: scale(0.9);
+        }
+
+        .node-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .node-circle::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .node-completed {
+            background: #10b981;
+            color: white;
+            border-bottom: 8px solid #059669;
+        }
+
+        .node-active {
+            background: #6366f1;
+            color: white;
+            border-bottom: 8px solid #4f46e5;
+            animation: pulse 2s infinite;
+        }
+
+        .node-locked {
+            background: #e5e7eb;
+            color: #9ca3af;
+            border-bottom: 8px solid #d1d5db;
+            cursor: not-allowed;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(99, 102, 241, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 pb-20">
+    <nav class="bg-white border-b border-gray-100 px-6 py-4 flex items-center sticky top-0 z-10">
+        <a href="dashboard.html" class="p-2 mr-4 hover:bg-gray-50 rounded-xl transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </a>
+        <h1 id="subjectTitle" class="text-xl font-bold text-gray-900">Fan Yo'li</h1>
+    </nav>
+
+    <div class="max-w-md mx-auto mt-10 space-y-12 flex flex-col items-center" id="pathContainer">
+        <!-- Roadmap nodes will be dynamically added here -->
+    </div>
+
+    <!-- Lesson Modal/Popup -->
+    <div id="lessonModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-8 text-center animate-in slide-in-from-bottom duration-300">
+            <div id="modalIcon" class="text-6xl mb-4">🌟</div>
+            <h2 id="modalTitle" class="text-2xl font-bold mb-2">Mavzu nomi</h2>
+            <p id="modalDesc" class="text-gray-500 mb-8">Ushbu bosqichda siz asosiy tushunchalarni o'rganasiz.</p>
+            <div class="flex flex-col gap-3">
+                <button id="startLessonBtn"
+                    class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">Boshlash</button>
+                <button id="closeModalBtn"
+                    class="w-full py-4 bg-gray-100 text-gray-600 rounded-2xl font-bold hover:bg-gray-200 transition">Yopish</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/path.js"></script>
+</body>
+
+</html>

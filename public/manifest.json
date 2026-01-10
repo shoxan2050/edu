@@ -1,0 +1,113 @@
+{
+  "validation_date": "2025-11-16",
+  "total_files": 6,
+  "files": [
+    {
+      "path": "github_bot\\requirements.txt",
+      "size_bytes": 52,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "sha256": "faf19e0a9b390a87da12f5209af4bb1673487c0d2cd3e8329a8e0e82d385385b",
+      "encoding": "utf-8",
+      "total_lines": 3,
+      "non_empty_lines": 3,
+      "unique_entries": 3,
+      "min_length": 8,
+      "max_length": 25,
+      "avg_length": 15.333333333333334
+    },
+    {
+      "path": "load_tester\\load_test_report_20251230_093545.txt",
+      "size_bytes": 492,
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "1 duplicate entries found"
+      ],
+      "sha256": "e5687d30aec0c85266a1cbde63ecab655371937a8c4048f3378c6296a55d4bff",
+      "encoding": "utf-8",
+      "total_lines": 22,
+      "non_empty_lines": 18,
+      "unique_entries": 17,
+      "duplicate_count": 1,
+      "min_length": 13,
+      "max_length": 60,
+      "avg_length": 24.88888888888889
+    },
+    {
+      "path": "load_tester\\requirements.txt",
+      "size_bytes": 41,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "sha256": "792bfa87f07a42c524247dc88c05e888732f7fac93206771c97f1b5fd98598f9",
+      "encoding": "utf-8",
+      "total_lines": 2,
+      "non_empty_lines": 2,
+      "unique_entries": 2,
+      "min_length": 16,
+      "max_length": 21,
+      "avg_length": 18.5
+    },
+    {
+      "path": "load_tester\\website_scan_20251230_095545.txt",
+      "size_bytes": 28162,
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "857 duplicate entries found"
+      ],
+      "sha256": "f1e8081b455685ea5dda5b84e1ef493933421c0648d2b682da6746942206b894",
+      "encoding": "utf-8",
+      "total_lines": 1187,
+      "non_empty_lines": 1177,
+      "unique_entries": 320,
+      "duplicate_count": 857,
+      "min_length": 5,
+      "max_length": 110,
+      "avg_length": 20.852166525063723
+    },
+    {
+      "path": "New Text Document.txt",
+      "size_bytes": 11814,
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "10 duplicate entries found"
+      ],
+      "sha256": "579fc0190264221b62f069dc749bae888b172a234e65b60b95243b7225e0c302",
+      "encoding": "utf-8",
+      "total_lines": 203,
+      "non_empty_lines": 174,
+      "unique_entries": 164,
+      "duplicate_count": 10,
+      "min_length": 1,
+      "max_length": 392,
+      "avg_length": 65.48275862068965
+    },
+    {
+      "path": "telegram_bot\\requirements.txt",
+      "size_bytes": 27,
+      "valid": true,
+      "errors": [],
+      "warnings": [],
+      "sha256": "63e4ee841b887775748abc735fba0a26e8dd523135fc7db41aef52acd575a01f",
+      "encoding": "utf-8",
+      "total_lines": 1,
+      "non_empty_lines": 1,
+      "unique_entries": 1,
+      "min_length": 25,
+      "max_length": 25,
+      "avg_length": 25.0
+    }
+  ],
+  "summary": {
+    "valid_files": 6,
+    "invalid_files": 0,
+    "total_warnings": 3,
+    "total_size_bytes": 40588,
+    "total_entries": 1375,
+    "total_unique_entries": 507
+  }
+}
