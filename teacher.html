@@ -68,7 +68,71 @@
         </div>
     </main>
 
+    <!-- Excel Preview Modal -->
+    <div id="excelPreviewModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50 rounded-t-[2.5rem]">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Excel Preview & Mapping</h2>
+                    <p class="text-sm text-gray-500">Ustunlarni tasdiqlang va ma'lumotlarni tekshiring</p>
+                </div>
+                <button onclick="document.getElementById('excelPreviewModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+
+            <div class="p-8 overflow-y-auto flex-grow space-y-8">
+                <!-- Column Mapping -->
+                <div class="bg-indigo-50 p-6 rounded-3xl border border-indigo-100">
+                    <h4 class="font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                        <span>🧩</span> Ustunlarni bog'lash (Mapping)
+                    </h4>
+                    <div id="mappingGrid" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <!-- Mapping selects will be here -->
+                    </div>
+                </div>
+
+                <!-- Preview Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider">
+                            <tr id="previewHeader">
+                                <!-- Headers -->
+                            </tr>
+                        </thead>
+                        <tbody id="previewBody" class="divide-y divide-gray-100">
+                            <!-- Rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="p-8 border-t border-gray-100 flex justify-between items-center bg-gray-50 rounded-b-[2.5rem]">
+                <div id="validationSummary" class="text-sm font-semibold text-gray-600">
+                    <!-- Summary count -->
+                </div>
+                <div class="flex gap-4">
+                    <button onclick="document.getElementById('excelPreviewModal').classList.add('hidden')"
+                        class="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition">Bekor
+                        qilish</button>
+                    <button id="confirmUploadBtn"
+                        class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-100">Tasdiqlash
+                        va yuklash</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="assets/js/teacher.js"></script>
+    <style>
+        .error-row {
+            background-color: #fff1f2;
+        }
+
+        .error-cell {
+            color: #e11d48;
+            font-weight: bold;
+        }
+    </style>
 </body>
 
 </html>
