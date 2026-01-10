@@ -1,23 +1,39 @@
-(function () {
-    const user = JSON.parse(localStorage.getItem("user"));
+import { auth, db } from './firebase.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+/**
+ * guard.js: Monitors authenticaton state in real-time.
+ * Ensures only authorized users access specific pages.
+ */
+
+onAuthStateChanged(auth, async (user) => {
     const path = window.location.pathname;
-    const file = path.split('/').pop().toLowerCase() || 'index.html';
+    const page = path.split("/").pop().replace(".html", "") || "index";
+    const publicPages = ["index", "login", "register", ""];
 
-    // Public pages that don't need auth
-    // Resilient to Netlify/hosting where index.html might be omitted from URL
-    const isPublic = file === 'index.html' ||
-        file === 'login.html' ||
-        file === 'register.html' ||
-        path === '/' ||
-        path === '' ||
-        file === 'login' ||
-        file === 'register';
+    if (publicPages.includes(page)) {
+        // If logged in on public page, maybe redirect to dashboard
+        if (user && (page === "login" || page === "register")) {
+            const snap = await get(ref(db, `users/${user.uid}`));
+            const role = snap.exists() ? snap.val().role : 'student';
+            window.location.href = role === 'teacher' ? 'teacher.html' : 'dashboard.html';
+        }
+        return;
+    }
 
-    if (!user && !isPublic) {
+    // Protection for private pages
+    if (!user) {
+        localStorage.removeItem("user");
         window.location.href = "login.html";
+        return;
     }
 
-    if (user && isPublic && file !== 'index.html' && path !== '/' && path !== '') {
-        window.location.href = user.role === "teacher" ? "teacher.html" : "dashboard.html";
+    // Role-based protection for teacher.html
+    if (page === "teacher") {
+        const snap = await get(ref(db, `users/${user.uid}`));
+        if (snap.exists() && snap.val().role !== "teacher") {
+            window.location.href = "dashboard.html";
+        }
     }
-})();
+});
