@@ -132,3 +132,27 @@ async function processExcelData(data) {
 
 import { logout } from './auth.js';
 document.getElementById('logoutBtn').addEventListener('click', logout);
+const addSubjectBtn = document.getElementById("addSubjectBtn");
+
+if (addSubjectBtn) {
+  addSubjectBtn.onclick = () => {
+    const name = prompt("Fan nomini kiriting (masalan: Matematika)");
+    const id = prompt("Fan ID (inglizcha, kichik harfda): math");
+
+    if (!name || !id) {
+      alert("Fan nomi va ID majburiy!");
+      return;
+    }
+
+    const subjectRef = ref(db, `subjects/${id}`);
+    set(subjectRef, {
+      name,
+      id,
+      createdAt: Date.now()
+    });
+
+    alert("Fan yaratildi!");
+    loadTeacherSubjects();
+  };
+}
+
