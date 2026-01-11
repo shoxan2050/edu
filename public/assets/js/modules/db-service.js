@@ -29,8 +29,14 @@ export const DbService = {
     },
 
     async getAllSubjects() {
-        const result = await this.getDoc('subjects');
-        return result || {};
+        try {
+            const result = await this.getDoc('subjects');
+            console.log('[DbService] getAllSubjects result:', result ? 'data found' : 'null');
+            return result || {};
+        } catch (error) {
+            console.error('[DbService] getAllSubjects error:', error);
+            return {}; // Always return empty object on error
+        }
     },
 
     async updateSubject(subjectId, data) {

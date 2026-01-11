@@ -216,8 +216,8 @@ window.loadAdminSubjects = async function () {
     if (!container) return;
 
     try {
-        const subjects = await DbService.getAllSubjects();
-        if (Object.keys(subjects).length === 0) {
+        const subjects = await DbService.getAllSubjects() || {};
+        if (!subjects || typeof subjects !== 'object' || Object.keys(subjects).length === 0) {
             container.innerHTML = '<div class="text-center text-gray-400 p-10">Fanlar topilmadi</div>';
             return;
         }
