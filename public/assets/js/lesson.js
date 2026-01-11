@@ -35,7 +35,7 @@ const init = async (user) => {
             document.getElementById('interactiveArea').classList.add('hidden');
             const nextBtn = document.getElementById('nextBtn');
             nextBtn.textContent = "Bosh sahifaga qaytish";
-            nextBtn.onclick = () => window.location.href = 'dashboard.html';
+            nextBtn.onclick = () => window.location.href = '/dashboard';
         }
     } catch (e) {
         console.error("Lesson load error", e);
@@ -89,6 +89,6 @@ function renderLesson(lesson, progress) {
     textContainer.appendChild(homeworkDiv);
 
     document.getElementById('nextBtn').onclick = () => {
-        window.location.href = `test.html?subject=${subjectId}&lesson=${lessonId}`;
+        window.location.href = `/test?subject=${subjectId}&lesson=${lessonId}`;
     };
 }

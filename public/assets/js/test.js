@@ -236,7 +236,7 @@ async function finishTest() {
         setTimeout(() => {
             // Redirect to result page (Score is now safe in DB, query param just for UX/Fallback)
             // We pass score just for immediate render if needed, but result.html will verify from DB
-            window.location.href = `result.html?subject=${subjectId}&lesson=${lessonId}&score=${result.score}`;
+            window.location.href = `/result?subject=${subjectId}&lesson=${lessonId}&score=${result.score}`;
         }, 500);
 
     } catch (e) {
@@ -249,4 +249,3 @@ async function finishTest() {
 window.addEventListener("beforeunload", () => {
     if (timerInterval) clearInterval(timerInterval);
 });
-```

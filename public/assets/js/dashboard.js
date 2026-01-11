@@ -40,6 +40,12 @@ const init = async (user) => {
             document.getElementById('welcomeName').textContent = userData.name;
             document.getElementById('streakCount').textContent = userData.streak || 0;
 
+            // Show teacher link if user is teacher
+            if (userData.role === 'teacher') {
+                document.getElementById('teacherLink')?.classList.remove('hidden');
+                document.getElementById('profileTeacher')?.classList.remove('hidden');
+            }
+
             const userClass = parseInt(userData.sinf) || 0;
             const subjects = await DbService.getSubjectsByClass(userClass);
             const userProgress = userData.progress || {};
@@ -116,7 +122,7 @@ function renderSubjects(subjects, userProgress) {
         const completedCount = lessonPercents.filter(p => p >= 80).length;
 
         return `
-            <a href="path.html?subject=${id}" class="bg-white p-6 rounded-3xl border border-gray-100 hover:shadow-xl transition flex items-center justify-between group">
+            <a href="/path?subject=${id}" class="bg-white p-6 rounded-3xl border border-gray-100 hover:shadow-xl transition flex items-center justify-between group">
                 <div class="flex items-center gap-4">
                     <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl group-hover:scale-110 transition">
                         ${s.icon || '📚'}
@@ -138,5 +144,17 @@ function renderSubjects(subjects, userProgress) {
     }).join('');
 }
 
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) logoutBtn.onclick = logout;
+// Profile dropdown
+const profileBtn = document.getElementById('profileBtn');
+const profileDropdown = document.getElementById('profileDropdown');
+if (profileBtn && profileDropdown) {
+    profileBtn.onclick = () => profileDropdown.classList.toggle('hidden');
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#profileBtn') && !e.target.closest('#profileDropdown')) {
+            profileDropdown.classList.add('hidden');
+        }
+    });
+}
+
+const profileLogout = document.getElementById('profileLogout');
+if (profileLogout) profileLogout.onclick = logout;

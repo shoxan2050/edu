@@ -20,7 +20,7 @@ import { AuthService } from './modules/auth-service.js';
         // Redirect from public pages to dashboard
         if (publicPages.includes(page)) {
             const role = await AuthService.getRole();
-            window.location.href = role === 'teacher' ? 'teacher.html' : 'dashboard.html';
+            window.location.href = role === 'teacher' ? '/teacher' : '/dashboard';
             return;
         }
 
@@ -28,7 +28,7 @@ import { AuthService } from './modules/auth-service.js';
         if (page === "teacher") {
             const role = await AuthService.getRole();
             if (role !== "teacher") {
-                window.location.href = "dashboard.html";
+                window.location.href = "/dashboard";
                 return;
             }
         }
@@ -38,7 +38,7 @@ import { AuthService } from './modules/auth-service.js';
         window.__AUTH_USER__ = null;
 
         if (!publicPages.includes(page)) {
-            window.location.href = "index.html";
+            window.location.href = "/";
         }
     }
 })();

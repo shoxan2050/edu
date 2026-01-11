@@ -132,7 +132,7 @@ function renderPath(subjId, lessons, userProgress) {
             return;
         }
 
-        window.location.href = `lesson.html?subject=${subjId}&lesson=${id}`;
+        window.location.href = `/lesson?subject=${subjId}&lesson=${id}`;
     };
 }
 

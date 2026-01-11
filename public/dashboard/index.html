@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - EduPlatform</title>
-    <script type="module" src="assets/js/guard.js"></script>
+    <script type="module" src="../assets/js/guard.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -22,14 +22,24 @@
             <span>🎯</span> EduPlatform
         </div>
         <div class="flex items-center gap-4">
+            <a id="teacherLink" href="/teacher"
+                class="hidden px-4 py-2 bg-indigo-600 text-white rounded-xl font-semibold hover:bg-indigo-700 transition">👨‍🏫
+                O'qituvchi paneli</a>
             <span id="userName" class="text-gray-700 font-medium">O'quvchi</span>
-            <button id="logoutBtn" class="p-2 text-gray-400 hover:text-red-500 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 0 013 3v1" />
-                </svg>
-            </button>
+            <div class="relative">
+                <button id="profileBtn"
+                    class="w-10 h-10 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold hover:bg-indigo-700 transition">👤</button>
+                <div id="profileDropdown"
+                    class="hidden absolute top-12 right-0 bg-white rounded-2xl shadow-xl border border-gray-100 w-56 p-2 z-50">
+                    <button onclick="window.location.href='/teacher'" id="profileTeacher"
+                        class="hidden w-full p-3 text-left hover:bg-gray-50 rounded-xl text-gray-700">👨‍🏫 O'qituvchi
+                        paneli</button>
+                    <button onclick="alert('Sozlamalar keyingi versiyada')"
+                        class="w-full p-3 text-left hover:bg-gray-50 rounded-xl text-gray-700">⚙️ Sozlamalar</button>
+                    <button id="profileLogout" class="w-full p-3 text-left hover:bg-red-50 rounded-xl text-red-500">🚪
+                        Chiqish</button>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -98,7 +108,7 @@
         </div>
     </main>
 
-    <script type="module" src="assets/js/dashboard.js"></script>
+    <script type="module" src="../assets/js/dashboard.js"></script>
 </body>
 
 </html>

@@ -91,7 +91,7 @@ if (registerForm) {
             localStorage.setItem("user", JSON.stringify(userData));
 
             showToast("Hisob muvaffaqiyatli yaratildi! 🎉");
-            setTimeout(() => window.location.href = 'dashboard.html', 1500);
+            setTimeout(() => window.location.href = '/dashboard', 1500);
         } catch (error) {
             showToast(getFriendlyErrorMessage(error.code), 'error');
         } finally {
@@ -154,7 +154,7 @@ if (loginForm) {
 
                 showToast(`Xush kelibsiz, ${userData.name}! 👋`);
                 setTimeout(() => {
-                    window.location.href = userData.role === 'teacher' ? 'teacher.html' : 'dashboard.html';
+                    window.location.href = userData.role === 'teacher' ? '/teacher' : '/dashboard';
                 }, 1000);
             }
         } catch (error) {
@@ -168,5 +168,5 @@ if (loginForm) {
 export const logout = async () => {
     localStorage.removeItem("user");
     await signOut(auth);
-    window.location.href = 'login.html';
+    window.location.href = '/login';
 };

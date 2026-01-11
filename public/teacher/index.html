@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O'qituvchi Paneli - EduPlatform</title>
+    <script type="module" src="../assets/js/guard.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .nav-active {
+            background: rgba(99, 102, 241, 0.1);
+            color: #6366f1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen lg:flex">
+    <!-- Sidebar -->
+    <aside class="w-full lg:w-64 bg-white border-r border-gray-200 p-6 flex flex-col gap-6 min-h-screen">
+        <div class="flex items-center gap-2 text-xl font-bold text-indigo-600">
+            <span>👨‍🏫</span> EduPanel
+        </div>
+        <nav class="flex flex-col gap-1 flex-grow">
+            <button id="navSubjects" class="nav-btn p-3 text-left rounded-xl font-semibold nav-active">📚 Fanlar
+                boshqaruvi</button>
+            <button id="navStats"
+                class="nav-btn p-3 text-left rounded-xl font-semibold text-gray-500 hover:bg-gray-50">📊 O'quvchilar
+                statistikasi</button>
+            <button id="navAdmin"
+                class="nav-btn p-3 text-left rounded-xl font-semibold text-gray-500 hover:bg-gray-50">⚙️ Boshqaruv
+                paneli</button>
+            <a href="/dashboard" class="p-3 text-gray-500 hover:bg-gray-50 rounded-xl transition">🎓 Talaba sifatida
+                ko'rish</a>
+        </nav>
+        <button id="logoutBtn" class="p-3 text-red-500 hover:bg-red-50 rounded-xl transition font-semibold text-left">🚪
+            Chiqish</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-6 lg:p-10">
+        <!-- Profile Dropdown (Top Right) -->
+        <div class="flex justify-end mb-6 relative">
+            <button id="profileBtn"
+                class="w-12 h-12 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xl font-bold hover:bg-indigo-700 transition">
+                👤
+            </button>
+            <div id="profileDropdown"
+                class="hidden absolute top-14 right-0 bg-white rounded-2xl shadow-xl border border-gray-100 w-64 p-3 z-50">
+                <div class="p-3 border-b border-gray-100 mb-2">
+                    <p class="font-bold text-gray-900" id="profileName">O'qituvchi</p>
+                    <p class="text-sm text-gray-500" id="profileEmail">email@example.com</p>
+                </div>
+                <button onclick="window.changeTheme()"
+                    class="w-full p-3 text-left hover:bg-gray-50 rounded-xl text-gray-700">🎨 Mavzu
+                    o'zgartirish</button>
+                <button onclick="window.changePassword()"
+                    class="w-full p-3 text-left hover:bg-gray-50 rounded-xl text-gray-700">🔐 Parolni
+                    o'zgartirish</button>
+                <button id="profileLogout" class="w-full p-3 text-left hover:bg-red-50 rounded-xl text-red-500">🚪
+                    Chiqish</button>
+            </div>
+        </div>
+
+        <!-- Panel: Fanlar boshqaruvi -->
+        <section id="panelSubjects">
+            <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">📚 Fanlar boshqaruvi</h1>
+                    <p class="text-gray-500 mt-1">Fanlar va testlarni boshqaring</p>
+                </div>
+                <div class="flex gap-3">
+                    <button id="addSubjectBtn"
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">+
+                        Yangi fan</button>
+                    <button id="uploadExcelTrigger"
+                        class="px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition">📊
+                        Reja yuklash</button>
+                </div>
+            </header>
+
+            <!-- Excel Upload Collapsible -->
+            <section id="excelUploadSection" class="hidden mb-8 p-6 bg-white rounded-3xl border border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">1. Sinfni tanlang</label>
+                        <select id="classSelect" class="w-full p-4 border border-gray-200 rounded-xl text-lg">
+                            <option value="">-- Sinf --</option>
+                            <option value="1">1-sinf</option>
+                            <option value="2">2-sinf</option>
+                            <option value="3">3-sinf</option>
+                            <option value="4">4-sinf</option>
+                            <option value="5">5-sinf</option>
+                            <option value="6">6-sinf</option>
+                            <option value="7">7-sinf</option>
+                            <option value="8">8-sinf</option>
+                            <option value="9">9-sinf</option>
+                            <option value="10">10-sinf</option>
+                            <option value="11">11-sinf</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">2. Fanni tanlang</label>
+                        <select id="subjectSelect" class="w-full p-4 border border-gray-200 rounded-xl text-lg"
+                            disabled>
+                            <option value="">-- Avval sinfni tanlang --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-2">3. XLSX yuklang</label>
+                        <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden">
+                        <button id="uploadExcelBtn" onclick="document.getElementById('excelInput').click()"
+                            class="w-full px-6 py-4 border-2 border-indigo-600 text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition disabled:opacity-50"
+                            disabled>Faylni tanlash</button>
+                    </div>
+                </div>
+                <p class="text-center text-sm text-gray-500 mt-4"><strong>Jadval formati:</strong> Tartib | Mavzu | Uyga
+                    vazifa</p>
+            </section>
+
+            <!-- Subjects Grid -->
+            <div id="teacherSubjects" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- Panel: O'quvchilar statistikasi -->
+        <section id="panelStats" class="hidden">
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold text-gray-900">📊 O'quvchilar statistikasi</h1>
+                <p class="text-gray-500 mt-1">Barcha o'quvchilarning o'qish jarayonini kuzating</p>
+            </header>
+            <div id="studentsList" class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase text-sm">
+                        <tr>
+                            <th class="p-4">#</th>
+                            <th class="p-4">Ism</th>
+                            <th class="p-4">Sinf</th>
+                            <th class="p-4">Email</th>
+                            <th class="p-4">Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody" class="divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="5" class="p-8 text-center text-gray-400">Yuklanmoqda...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Panel: Boshqaruv paneli -->
+        <section id="panelAdmin" class="hidden">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">⚙️ Boshqaruv paneli</h1>
+                    <p class="text-gray-500 mt-1">Fanlarni tahrirlash yoki o'chirish</p>
+                </div>
+                <button onclick="window.deleteAllSubjects()"
+                    class="px-6 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition">🗑️
+                    Hammasini o'chirish</button>
+            </header>
+            <div id="adminSubjectsList" class="space-y-4"></div>
+        </section>
+    </main>
+
+    <!-- Add Subject Modal -->
+    <div id="addSubjectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">➕ Yangi fan qo'shish</h2>
+            <input id="newSubjectName" type="text" placeholder="Fan nomini kiriting"
+                class="w-full p-4 border border-gray-200 rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="flex gap-4">
+                <button onclick="document.getElementById('addSubjectModal').classList.add('hidden')"
+                    class="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition">Bekor
+                    qilish</button>
+                <button onclick="submitNewSubject()"
+                    class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">Qo'shish</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Editor Modal -->
+    <div id="testEditorModal"
+        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white w-full max-w-4xl rounded-3xl shadow-2xl my-8">
+            <div class="p-8 border-b border-gray-100 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">📝 Qo'lda test yaratish</h2>
+                    <p id="testEditorSubtitle" class="text-sm text-gray-500">Fan: -</p>
+                </div>
+                <button onclick="closeTestEditor()" class="text-gray-400 hover:text-gray-600 text-2xl">✕</button>
+            </div>
+            <div class="p-8 max-h-[60vh] overflow-y-auto">
+                <div id="questionsContainer" class="space-y-6"></div>
+                <button onclick="addQuestion()"
+                    class="mt-6 w-full py-4 border-2 border-dashed border-indigo-300 text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition">+
+                    Yangi savol qo'shish</button>
+            </div>
+            <div class="p-8 border-t border-gray-100 flex justify-between items-center">
+                <span id="questionCount" class="text-sm text-gray-500">0 ta savol</span>
+                <div class="flex gap-4">
+                    <button onclick="closeTestEditor()"
+                        class="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition">Bekor
+                        qilish</button>
+                    <button onclick="saveManualTest()"
+                        class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">Saqlash</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Excel Preview Modal -->
+    <div id="excelPreviewModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl flex flex-col max-h-[80vh]">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900">Excel ko'rib chiqish</h2>
+                    <p id="excelPreviewInfo" class="text-sm text-gray-500">Sinf: - | Fan: -</p>
+                </div>
+                <button onclick="document.getElementById('excelPreviewModal').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase">
+                        <tr>
+                            <th class="p-3">Tartib</th>
+                            <th class="p-3">Mavzu</th>
+                            <th class="p-3">Uyga vazifa</th>
+                        </tr>
+                    </thead>
+                    <tbody id="excelPreviewBody" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+            <div class="p-6 border-t border-gray-100 flex justify-between items-center">
+                <span id="excelRowCount" class="text-sm font-semibold text-gray-600">0 ta mavzu</span>
+                <div class="flex gap-4">
+                    <button onclick="document.getElementById('excelPreviewModal').classList.add('hidden')"
+                        class="px-6 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition">Bekor
+                        qilish</button>
+                    <button id="confirmExcelBtn"
+                        class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">Tasdiqlash</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Subject Modal -->
+    <div id="editSubjectModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">✏️ Fanni tahrirlash</h2>
+            <input id="editSubjectName" type="text" placeholder="Yangi nom"
+                class="w-full p-4 border border-gray-200 rounded-xl text-lg mb-6 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <input id="editSubjectId" type="hidden">
+            <div class="flex gap-4">
+                <button onclick="document.getElementById('editSubjectModal').classList.add('hidden')"
+                    class="flex-1 py-3 text-gray-500 font-bold hover:bg-gray-100 rounded-xl transition">Bekor
+                    qilish</button>
+                <button onclick="submitEditSubject()"
+                    class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">Saqlash</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation
+        const panels = ['panelSubjects', 'panelStats', 'panelAdmin'];
+        const navBtns = ['navSubjects', 'navStats', 'navAdmin'];
+
+        navBtns.forEach((btnId, idx) => {
+            document.getElementById(btnId).onclick = () => {
+                panels.forEach(p => document.getElementById(p).classList.add('hidden'));
+                navBtns.forEach(n => {
+                    document.getElementById(n).classList.remove('nav-active');
+                    document.getElementById(n).classList.add('text-gray-500');
+                });
+                document.getElementById(panels[idx]).classList.remove('hidden');
+                document.getElementById(btnId).classList.add('nav-active');
+                document.getElementById(btnId).classList.remove('text-gray-500');
+
+                // Load data for stats/admin panels
+                if (idx === 1) window.loadStudents?.();
+                if (idx === 2) window.loadAdminSubjects?.();
+            };
+        });
+
+        // Profile dropdown
+        document.getElementById('profileBtn').onclick = () => {
+            document.getElementById('profileDropdown').classList.toggle('hidden');
+        };
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#profileBtn') && !e.target.closest('#profileDropdown')) {
+                document.getElementById('profileDropdown').classList.add('hidden');
+            }
+        });
+
+        // Excel upload toggle
+        document.getElementById('uploadExcelTrigger').onclick = () => {
+            document.getElementById('excelUploadSection').classList.toggle('hidden');
+        };
+
+        // Predefined subjects
+        const SUBJECTS_BY_CLASS = {
+            1: ["O'qish", "Ona tili", "Matematika", "Atrofimizdagi olam", "Tasviriy san'at", "Musiqa", "Texnologiya", "Jismoniy tarbiya"],
+            2: ["Ona tili", "O'qish", "Matematika", "Atrofimizdagi olam", "Tasviriy san'at", "Musiqa", "Texnologiya", "Jismoniy tarbiya"],
+            3: ["Ona tili", "O'qish", "Matematika", "Tabiatshunoslik", "Tasviriy san'at", "Musiqa", "Texnologiya", "Jismoniy tarbiya"],
+            4: ["Ona tili", "O'qish", "Matematika", "Tabiatshunoslik", "Tasviriy san'at", "Musiqa", "Texnologiya", "Jismoniy tarbiya"],
+            5: ["Ona tili", "Adabiyot", "Matematika", "Ingliz tili", "Tarix", "Geografiya", "Biologiya", "Tasviriy san'at", "Musiqa", "Texnologiya", "Jismoniy tarbiya"],
+            6: ["Ona tili", "Adabiyot", "Matematika", "Ingliz tili", "Tarix", "Geografiya", "Biologiya", "Fizika", "Tasviriy san'at", "Musiqa", "Texnologiya", "Jismoniy tarbiya"],
+            7: ["Ona tili", "Adabiyot", "Algebra", "Geometriya", "Ingliz tili", "Tarix", "Geografiya", "Biologiya", "Fizika", "Informatika", "Texnologiya", "Jismoniy tarbiya"],
+            8: ["Ona tili", "Adabiyot", "Algebra", "Geometriya", "Ingliz tili", "Fizika", "Kimyo", "Biologiya", "Tarix", "Geografiya", "Informatika", "Texnologiya", "Jismoniy tarbiya"],
+            9: ["Ona tili", "Adabiyot", "Algebra", "Geometriya", "Ingliz tili", "Fizika", "Kimyo", "Biologiya", "Tarix", "Geografiya", "Informatika", "Huquq asoslari", "Iqtisodiyot asoslari", "Jismoniy tarbiya"],
+            10: ["Ona tili", "Adabiyot", "Algebra va analiz asoslari", "Geometriya", "Ingliz tili", "Fizika", "Kimyo", "Biologiya", "Tarix", "Geografiya", "Informatika", "Huquq", "Iqtisodiyot", "Jismoniy tarbiya"],
+            11: ["Ona tili", "Adabiyot", "Algebra va analiz asoslari", "Geometriya", "Ingliz tili", "Fizika", "Kimyo", "Biologiya", "Tarix", "Geografiya", "Informatika", "Huquq", "Iqtisodiyot", "Jismoniy tarbiya"]
+        };
+
+        document.getElementById('classSelect').onchange = function () {
+            const classNum = parseInt(this.value);
+            const subjectSelect = document.getElementById('subjectSelect');
+            const uploadBtn = document.getElementById('uploadExcelBtn');
+            if (classNum && SUBJECTS_BY_CLASS[classNum]) {
+                subjectSelect.innerHTML = '<option value="">-- Fanni tanlang --</option>' +
+                    SUBJECTS_BY_CLASS[classNum].map(s => `<option value="${s}">${s}</option>`).join('');
+                subjectSelect.disabled = false;
+            } else {
+                subjectSelect.innerHTML = '<option value="">-- Avval sinfni tanlang --</option>';
+                subjectSelect.disabled = true;
+                uploadBtn.disabled = true;
+            }
+        };
+        document.getElementById('subjectSelect').onchange = function () {
+            document.getElementById('uploadExcelBtn').disabled = !this.value;
+        };
+
+        function submitNewSubject() {
+            const input = document.getElementById('newSubjectName');
+            const name = input.value.trim();
+            if (name) {
+                window.createSubject?.(name);
+                input.value = '';
+                document.getElementById('addSubjectModal').classList.add('hidden');
+            }
+        }
+
+        // Manual Test Editor
+        let currentTestSubjectId = null;
+        let questionCounter = 0;
+
+        window.openTestEditor = function (subjectId, subjectName) {
+            currentTestSubjectId = subjectId;
+            document.getElementById('testEditorSubtitle').textContent = `Fan: ${subjectName}`;
+            document.getElementById('questionsContainer').innerHTML = '';
+            questionCounter = 0;
+            addQuestion();
+            document.getElementById('testEditorModal').classList.remove('hidden');
+        };
+
+        function closeTestEditor() {
+            document.getElementById('testEditorModal').classList.add('hidden');
+        }
+
+        function addQuestion() {
+            questionCounter++;
+            const container = document.getElementById('questionsContainer');
+            const qDiv = document.createElement('div');
+            qDiv.className = 'bg-gray-50 p-6 rounded-2xl';
+            qDiv.id = `question_${questionCounter}`;
+            qDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-bold text-gray-900">${questionCounter}-savol</h4>
+                    <button onclick="removeQuestion(${questionCounter})" class="text-red-500 hover:text-red-700">🗑️</button>
+                </div>
+                <input type="text" placeholder="Savol matnini kiriting..." class="question-text w-full p-4 border border-gray-200 rounded-xl mb-4 text-lg" onkeydown="handleQuestionKey(event, ${questionCounter})">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_${questionCounter}" value="0" class="w-5 h-5">
+                        <input type="text" placeholder="A variant" class="option-input flex-1 p-3 border border-gray-200 rounded-xl" onkeydown="handleOptionKey(event, ${questionCounter}, 0)">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_${questionCounter}" value="1" class="w-5 h-5">
+                        <input type="text" placeholder="B variant" class="option-input flex-1 p-3 border border-gray-200 rounded-xl" onkeydown="handleOptionKey(event, ${questionCounter}, 1)">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_${questionCounter}" value="2" class="w-5 h-5">
+                        <input type="text" placeholder="C variant" class="option-input flex-1 p-3 border border-gray-200 rounded-xl" onkeydown="handleOptionKey(event, ${questionCounter}, 2)">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="radio" name="correct_${questionCounter}" value="3" class="w-5 h-5">
+                        <input type="text" placeholder="D variant" class="option-input flex-1 p-3 border border-gray-200 rounded-xl" onkeydown="handleOptionKey(event, ${questionCounter}, 3)">
+                    </div>
+                </div>
+                <p class="mt-3 text-sm text-gray-500">💡 To'g'ri javobni radio tugmasi bilan belgilang</p>
+            `;
+            container.appendChild(qDiv);
+            updateQuestionCount();
+            qDiv.querySelector('.question-text').focus();
+        }
+
+        function removeQuestion(num) {
+            document.getElementById(`question_${num}`)?.remove();
+            updateQuestionCount();
+        }
+
+        function updateQuestionCount() {
+            const count = document.querySelectorAll('#questionsContainer > div').length;
+            document.getElementById('questionCount').textContent = `${count} ta savol`;
+        }
+
+        function handleQuestionKey(e, qNum) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const q = document.getElementById(`question_${qNum}`);
+                q.querySelectorAll('.option-input')[0]?.focus();
+            }
+        }
+
+        function handleOptionKey(e, qNum, optIndex) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const q = document.getElementById(`question_${qNum}`);
+                const options = q.querySelectorAll('.option-input');
+                if (optIndex < 3) {
+                    options[optIndex + 1]?.focus();
+                } else {
+                    addQuestion();
+                }
+            }
+        }
+
+        window.saveManualTest = async function () {
+            const questions = [];
+            document.querySelectorAll('#questionsContainer > div').forEach((qDiv) => {
+                const questionText = qDiv.querySelector('.question-text').value.trim();
+                const options = Array.from(qDiv.querySelectorAll('.option-input')).map(i => i.value.trim());
+                const correctRadio = qDiv.querySelector(`input[name^="correct_"]:checked`);
+                const correct = correctRadio ? parseInt(correctRadio.value) : 0;
+                if (questionText && options.every(o => o)) {
+                    questions.push({ question: questionText, options, correct, difficulty: 'medium' });
+                }
+            });
+
+            if (questions.length === 0) {
+                alert("Kamida bitta to'liq savol kiriting!");
+                return;
+            }
+
+            try {
+                await window.saveTestToDb?.(currentTestSubjectId, questions);
+                alert(`${questions.length} ta savol saqlandi! ✅`);
+                closeTestEditor();
+                location.reload();
+            } catch (e) {
+                alert("Xatolik: " + e.message);
+            }
+        };
+
+        // Edit subject
+        window.openEditSubject = function (id, name) {
+            document.getElementById('editSubjectId').value = id;
+            document.getElementById('editSubjectName').value = name;
+            document.getElementById('editSubjectModal').classList.remove('hidden');
+        };
+
+        function submitEditSubject() {
+            const id = document.getElementById('editSubjectId').value;
+            const name = document.getElementById('editSubjectName').value.trim();
+            if (id && name) {
+                window.updateSubject?.(id, name);
+                document.getElementById('editSubjectModal').classList.add('hidden');
+            }
+        }
+
+        // Theme and password stubs
+        window.changeTheme = () => alert("Mavzu o'zgartirish funksiyasi keyingi versiyada qo'shiladi.");
+        window.changePassword = () => alert("Parolni o'zgartirish funksiyasi keyingi versiyada qo'shiladi.");
+    </script>
+
+    <script type="module" src="../assets/js/teacher.js"></script>
+</body>
+
+</html>
