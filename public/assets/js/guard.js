@@ -1,44 +1,78 @@
 /**
- * guard.js - Page Protection using AuthService
+ * guard.js - Page Protection
  * Routes users based on auth state and role.
  */
 
-import { AuthService } from './modules/auth-service.js';
+import { auth, db } from './firebase.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-(async () => {
+(function () {
+    // Check if already redirecting (prevents infinite loop)
+    const redirectKey = '__guard_redirected__';
+    if (sessionStorage.getItem(redirectKey) === window.location.pathname) {
+        sessionStorage.removeItem(redirectKey);
+        console.log("Guard: Skipping (already redirected here)");
+        return;
+    }
+
     const path = window.location.pathname;
-    const page = path.split("/").pop().replace(".html", "") || "index";
-    const publicPages = ["index", "index.html", "login", "register", "signup", ""];
+    const segments = path.split("/").filter(s => s && s !== "index.html");
+    const page = segments[segments.length - 1] || "index";
 
-    const user = await AuthService.getCurrentUser();
+    console.log("Guard: page =", page);
 
-    if (user) {
-        // Dispatch event for legacy listeners (backward compatibility)
-        document.dispatchEvent(new CustomEvent('authReady', { detail: user }));
-        window.__AUTH_USER__ = user; // Cache for late listeners
+    const publicPages = ["index", "login", "register", "signup"];
+    const isPublicPage = publicPages.includes(page);
 
-        // Redirect from public pages to dashboard
-        if (publicPages.includes(page)) {
-            const role = await AuthService.getRole();
-            window.location.href = role === 'teacher' ? '/teacher' : '/dashboard';
-            return;
-        }
+    // Use unsubscribe to only handle first auth event
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        unsubscribe(); // Stop listening after first event
 
-        // Teacher page protection
-        if (page === "teacher") {
-            const role = await AuthService.getRole();
-            if (role !== "teacher") {
-                window.location.href = "/dashboard";
-                return;
+        console.log("Guard: auth state =", firebaseUser ? "logged in" : "not logged in");
+
+        if (firebaseUser) {
+            try {
+                const snap = await get(ref(db, `users/${firebaseUser.uid}`));
+                const userData = snap.exists() ? snap.val() : {};
+                const role = userData.role || 'student';
+
+                window.__AUTH_USER__ = { ...userData, uid: firebaseUser.uid, email: firebaseUser.email };
+                document.dispatchEvent(new CustomEvent('authReady', { detail: window.__AUTH_USER__ }));
+
+                console.log("Guard: role =", role, ", isPublicPage =", isPublicPage);
+
+                // Redirect from public pages to appropriate dashboard
+                if (isPublicPage) {
+                    const target = role === 'teacher' ? '/teacher' : '/dashboard';
+                    sessionStorage.setItem(redirectKey, target);
+                    console.log("Guard: redirecting to", target);
+                    window.location.replace(target);
+                    return;
+                }
+
+                // Teacher page protection
+                if (page === "teacher" && role !== "teacher") {
+                    sessionStorage.setItem(redirectKey, '/dashboard');
+                    window.location.replace("/dashboard");
+                    return;
+                }
+
+            } catch (e) {
+                console.error("Guard: Error", e);
+                window.__AUTH_USER__ = { uid: firebaseUser.uid, email: firebaseUser.email };
+                document.dispatchEvent(new CustomEvent('authReady', { detail: window.__AUTH_USER__ }));
+            }
+        } else {
+            window.__AUTH_USER__ = null;
+            document.dispatchEvent(new CustomEvent('authReady', { detail: null }));
+
+            // Redirect to login if on protected page
+            if (!isPublicPage) {
+                sessionStorage.setItem(redirectKey, '/login');
+                console.log("Guard: not logged in, redirecting to /login");
+                window.location.replace("/login");
             }
         }
-    } else {
-        // Not logged in
-        document.dispatchEvent(new CustomEvent('authReady', { detail: null }));
-        window.__AUTH_USER__ = null;
-
-        if (!publicPages.includes(page)) {
-            window.location.href = "/";
-        }
-    }
+    });
 })();
