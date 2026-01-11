@@ -71,8 +71,8 @@ async function loadTeacherSubjects() {
     if (!list) return;
 
     try {
-        const subjects = await DbService.getAllSubjects();
-        if (Object.keys(subjects).length === 0) {
+        const subjects = await DbService.getAllSubjects() || {};
+        if (!subjects || Object.keys(subjects).length === 0) {
             list.innerHTML = `<div class="col-span-full py-10 text-center text-gray-400">Hali fanlar qo'shilmagan.</div>`;
             return;
         }
@@ -347,11 +347,11 @@ async function commitExcelUpload(sinf, subjectName) {
     try {
         setBtnLoading(document.getElementById('confirmExcelBtn'), true);
 
-        const allSubjects = await DbService.getAllSubjects();
+        const allSubjects = await DbService.getAllSubjects() || {};
         const normalize = s => s.toString().trim().toLowerCase();
 
         let subjId = Object.keys(allSubjects).find(id =>
-            normalize(allSubjects[id].name) === normalize(subjectName)
+            allSubjects[id]?.name && normalize(allSubjects[id].name) === normalize(subjectName)
         );
 
         const updates = {};

@@ -29,7 +29,8 @@ export const DbService = {
     },
 
     async getAllSubjects() {
-        return this.getDoc('subjects') || {};
+        const result = await this.getDoc('subjects');
+        return result || {};
     },
 
     async updateSubject(subjectId, data) {
