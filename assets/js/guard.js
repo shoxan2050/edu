@@ -1,46 +1,73 @@
 /**
- * guard.js - Page Protection using AuthService
+ * guard.js - Page Protection
  * Routes users based on auth state and role.
+ * FIXED: Added redirect flag to prevent infinite loops
  */
 
-import { AuthService } from './modules/auth-service.js';
+import { auth, db } from './firebase.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 
-(async () => {
+// Prevent multiple redirects
+if (sessionStorage.getItem('__redirecting__')) {
+    sessionStorage.removeItem('__redirecting__');
+} else {
+    initGuard();
+}
+
+async function initGuard() {
     const path = window.location.pathname;
-    // Handle both /teacher and /teacher/ formats
+
+    // Get page name from URL (handles /teacher, /teacher/, /teacher/index.html)
     const segments = path.split("/").filter(s => s && s !== "index.html");
     const page = segments[segments.length - 1] || "index";
+
+    console.log("Guard: page detected =", page, "path =", path);
+
     const publicPages = ["index", "login", "register", "signup"];
+    const isPublicPage = publicPages.includes(page);
 
-    const user = await AuthService.getCurrentUser();
+    // Wait for auth state
+    onAuthStateChanged(auth, async (firebaseUser) => {
+        if (firebaseUser) {
+            // User is logged in
+            try {
+                const snap = await get(ref(db, `users/${firebaseUser.uid}`));
+                const userData = snap.exists() ? snap.val() : {};
+                const role = userData.role || 'student';
 
-    if (user) {
-        // Dispatch event for legacy listeners (backward compatibility)
-        document.dispatchEvent(new CustomEvent('authReady', { detail: user }));
-        window.__AUTH_USER__ = user; // Cache for late listeners
+                // Cache for other scripts
+                window.__AUTH_USER__ = { ...firebaseUser, ...userData, uid: firebaseUser.uid };
+                document.dispatchEvent(new CustomEvent('authReady', { detail: window.__AUTH_USER__ }));
 
-        // Redirect from public pages to dashboard
-        if (publicPages.includes(page)) {
-            const role = await AuthService.getRole();
-            window.location.href = role === 'teacher' ? '/teacher' : '/dashboard';
-            return;
-        }
+                // Redirect from public pages
+                if (isPublicPage) {
+                    sessionStorage.setItem('__redirecting__', 'true');
+                    window.location.href = role === 'teacher' ? '/teacher' : '/dashboard';
+                    return;
+                }
 
-        // Teacher page protection
-        if (page === "teacher") {
-            const role = await AuthService.getRole();
-            if (role !== "teacher") {
-                window.location.href = "/dashboard";
-                return;
+                // Teacher page protection
+                if (page === "teacher" && role !== "teacher") {
+                    sessionStorage.setItem('__redirecting__', 'true');
+                    window.location.href = "/dashboard";
+                    return;
+                }
+
+            } catch (e) {
+                console.error("Guard: Error fetching user data", e);
+                window.__AUTH_USER__ = firebaseUser;
+                document.dispatchEvent(new CustomEvent('authReady', { detail: firebaseUser }));
+            }
+        } else {
+            // Not logged in
+            window.__AUTH_USER__ = null;
+            document.dispatchEvent(new CustomEvent('authReady', { detail: null }));
+
+            if (!isPublicPage) {
+                sessionStorage.setItem('__redirecting__', 'true');
+                window.location.href = "/login";
             }
         }
-    } else {
-        // Not logged in
-        document.dispatchEvent(new CustomEvent('authReady', { detail: null }));
-        window.__AUTH_USER__ = null;
-
-        if (!publicPages.includes(page)) {
-            window.location.href = "/";
-        }
-    }
-})();
+    }, { onlyOnce: true }); // Only fire once per page load
+}
