@@ -7,6 +7,7 @@ import { ExcelService } from './modules/excel-service.js';
 
 const init = async (user) => {
     loadTeacherSubjects();
+    setupAddSubjectButton();
 };
 
 if (window.__AUTH_USER__) {
@@ -14,6 +15,53 @@ if (window.__AUTH_USER__) {
 } else {
     document.addEventListener('authReady', (e) => init(e.detail));
 }
+
+// --- ADD SUBJECT FUNCTIONALITY ---
+function setupAddSubjectButton() {
+    const addBtn = document.getElementById('addSubjectBtn');
+    if (!addBtn) return;
+
+    addBtn.onclick = () => {
+        const modal = document.getElementById('addSubjectModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+        } else {
+            // Fallback: use prompt
+            const name = prompt("Yangi fan nomini kiriting:");
+            if (name && name.trim()) {
+                createSubject(name.trim());
+            }
+        }
+    };
+}
+
+async function createSubject(name) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    try {
+        const subjectId = `S-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        const updates = {};
+        updates[`subjects/${subjectId}`] = {
+            id: subjectId,
+            name: name,
+            icon: "📚",
+            createdBy: user.uid,
+            createdAt: Date.now(),
+            path: [],
+            classes: []
+        };
+
+        await DbService.commitBatchUpload(updates, `manual_${name}`, user.uid);
+        showToast(`"${name}" fani qo'shildi! 🎉`, 'success');
+        loadTeacherSubjects();
+    } catch (e) {
+        console.error("Create subject error", e);
+        showToast("Fan qo'shishda xatolik! ❌", 'error');
+    }
+}
+
+window.createSubject = createSubject; // Expose for modal
 
 async function loadTeacherSubjects() {
     const list = document.getElementById('teacherSubjects');
