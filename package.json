@@ -1,0 +1,9 @@
+{
+    "name": "edu-platform",
+    "version": "1.0.0",
+    "description": "Educational platform with AI test generation",
+    "type": "module",
+    "dependencies": {
+        "firebase-admin": "^12.0.0"
+    }
+}
