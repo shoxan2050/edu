@@ -1,39 +1,46 @@
-import { auth, db } from './firebase.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-import { ref, get } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
-
 /**
- * guard.js: Monitors authenticaton state in real-time.
- * Ensures only authorized users access specific pages.
+ * guard.js - Page Protection using AuthService
+ * Routes users based on auth state and role.
  */
 
-onAuthStateChanged(auth, async (user) => {
+import { AuthService } from './modules/auth-service.js';
+
+(async () => {
     const path = window.location.pathname;
-    const page = path.split("/").pop().replace(".html", "") || "index";
-    const publicPages = ["index", "login", "register", ""];
+    // Handle both /teacher and /teacher/ formats
+    const segments = path.split("/").filter(s => s && s !== "index.html");
+    const page = segments[segments.length - 1] || "index";
+    const publicPages = ["index", "login", "register", "signup"];
 
-    if (publicPages.includes(page)) {
-        // If logged in on public page, maybe redirect to dashboard
-        if (user && (page === "login" || page === "register")) {
-            const snap = await get(ref(db, `users/${user.uid}`));
-            const role = snap.exists() ? snap.val().role : 'student';
-            window.location.href = role === 'teacher' ? 'teacher.html' : 'dashboard.html';
+    const user = await AuthService.getCurrentUser();
+
+    if (user) {
+        // Dispatch event for legacy listeners (backward compatibility)
+        document.dispatchEvent(new CustomEvent('authReady', { detail: user }));
+        window.__AUTH_USER__ = user; // Cache for late listeners
+
+        // Redirect from public pages to dashboard
+        if (publicPages.includes(page)) {
+            const role = await AuthService.getRole();
+            window.location.href = role === 'teacher' ? '/teacher' : '/dashboard';
+            return;
         }
-        return;
-    }
 
-    // Protection for private pages
-    if (!user) {
-        localStorage.removeItem("user");
-        window.location.href = "login.html";
-        return;
-    }
+        // Teacher page protection
+        if (page === "teacher") {
+            const role = await AuthService.getRole();
+            if (role !== "teacher") {
+                window.location.href = "/dashboard";
+                return;
+            }
+        }
+    } else {
+        // Not logged in
+        document.dispatchEvent(new CustomEvent('authReady', { detail: null }));
+        window.__AUTH_USER__ = null;
 
-    // Role-based protection for teacher.html
-    if (page === "teacher") {
-        const snap = await get(ref(db, `users/${user.uid}`));
-        if (snap.exists() && snap.val().role !== "teacher") {
-            window.location.href = "dashboard.html";
+        if (!publicPages.includes(page)) {
+            window.location.href = "/";
         }
     }
-});
+})();
