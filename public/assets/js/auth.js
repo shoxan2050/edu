@@ -152,7 +152,7 @@ if (loginForm) {
                 });
                 // localStorage.setItem("user", JSON.stringify(userData)); // Optional: update local cache if needed, but rely on DB usually
 
-                showToast(`Xush kelyibsiz, ${userData.name}! 👋`);
+                showToast(`Xush kelibsiz, ${userData.name}! 👋`);
                 setTimeout(() => {
                     window.location.href = userData.role === 'teacher' ? 'teacher.html' : 'dashboard.html';
                 }, 1000);
