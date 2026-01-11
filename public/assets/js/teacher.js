@@ -354,29 +354,34 @@ async function commitExcelUpload(sinf, subjectName) {
             allSubjects[id]?.name && normalize(allSubjects[id].name) === normalize(subjectName)
         );
 
-        const updates = {};
-
+        // ===== STEP 1: Create or update subject first =====
         if (!subjId) {
             subjId = `S-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-            updates[`subjects/${subjId}`] = {
+            await set(ref(db, `subjects/${subjId}`), {
                 id: subjId,
                 name: subjectName,
                 icon: "📚",
                 createdBy: user.uid,
                 createdAt: Date.now(),
-                classes: [parseInt(sinf)]
-            };
+                classes: [parseInt(sinf)],
+                lessons: {},
+                path: []
+            });
         } else {
+            // Update classes only
             const existing = allSubjects[subjId];
             const classes = new Set(existing.classes || []);
             classes.add(parseInt(sinf));
-            updates[`subjects/${subjId}/classes`] = Array.from(classes).sort((a, b) => a - b);
+            await update(ref(db, `subjects/${subjId}`), {
+                classes: Array.from(classes).sort((a, b) => a - b)
+            });
         }
 
-        const path = [];
+        // ===== STEP 2: Add lessons one by one =====
+        const lessonIds = [];
         for (const row of currentExcelRows) {
             const lessonId = `L-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-            updates[`subjects/${subjId}/lessons/${lessonId}`] = {
+            await set(ref(db, `subjects/${subjId}/lessons/${lessonId}`), {
                 id: lessonId,
                 title: row.mavzu,
                 order: parseInt(row.tartib) || 0,
@@ -385,21 +390,26 @@ async function commitExcelUpload(sinf, subjectName) {
                 testGenerated: false,
                 uploadedBy: user.uid,
                 timestamp: Date.now()
-            };
-            path.push({ id: lessonId, order: parseInt(row.tartib) || 0 });
+            });
+            lessonIds.push({ id: lessonId, order: parseInt(row.tartib) || 0 });
 
             // Small delay to ensure unique IDs
-            await new Promise(r => setTimeout(r, 1));
+            await new Promise(r => setTimeout(r, 2));
         }
 
-        // First update: subject and lessons
-        await DbService.commitBatchUpload(updates, `excel_${subjectName}`, user.uid);
+        // ===== STEP 3: Update path =====
+        lessonIds.sort((a, b) => a.order - b.order);
+        await update(ref(db, `subjects/${subjId}`), {
+            path: lessonIds.map(l => l.id)
+        });
 
-        // Second update: path (separate to avoid ancestor conflict)
-        path.sort((a, b) => a.order - b.order);
-        const pathUpdate = {};
-        pathUpdate[`subjects/${subjId}/path`] = path.map(p => p.id);
-        await update(ref(db), pathUpdate);
+        // Log upload
+        await set(ref(db, `logs/uploads/upload_${Date.now()}`), {
+            timestamp: Date.now(),
+            fileName: `excel_${subjectName}`,
+            userUid: user.uid,
+            rowCount: currentExcelRows.length
+        });
 
         showToast(`${currentExcelRows.length} ta mavzu yuklandi! 🎉`, 'success');
         document.getElementById('excelPreviewModal').classList.add('hidden');

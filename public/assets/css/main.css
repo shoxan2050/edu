@@ -206,3 +206,51 @@ body {
 [data-theme^="neon-"] .bg-indigo-600:hover {
     box-shadow: 0 0 25px var(--glow-color), 0 0 50px var(--shadow-color);
 }
+
+/* Form Elements for Dark Themes */
+[data-theme="dark"] select,
+[data-theme="dark"] input,
+[data-theme^="neon-"] select,
+[data-theme^="neon-"] input {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] select option,
+[data-theme^="neon-"] select option {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] ::placeholder,
+[data-theme^="neon-"] ::placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 0.7;
+}
+
+/* Labels and Headers */
+[data-theme="dark"] label,
+[data-theme^="neon-"] label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme^="neon-"] h1,
+[data-theme^="neon-"] h2,
+[data-theme^="neon-"] h3,
+[data-theme^="neon-"] h4 {
+    color: var(--text-primary) !important;
+}
+
+/* Cards and Modals */
+[data-theme="dark"] .rounded-3xl,
+[data-theme="dark"] .rounded-2xl,
+[data-theme^="neon-"] .rounded-3xl,
+[data-theme^="neon-"] .rounded-2xl {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
