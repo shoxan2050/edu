@@ -387,12 +387,19 @@ async function commitExcelUpload(sinf, subjectName) {
                 timestamp: Date.now()
             };
             path.push({ id: lessonId, order: parseInt(row.tartib) || 0 });
+
+            // Small delay to ensure unique IDs
+            await new Promise(r => setTimeout(r, 1));
         }
 
-        path.sort((a, b) => a.order - b.order);
-        updates[`subjects/${subjId}/path`] = path.map(p => p.id);
-
+        // First update: subject and lessons
         await DbService.commitBatchUpload(updates, `excel_${subjectName}`, user.uid);
+
+        // Second update: path (separate to avoid ancestor conflict)
+        path.sort((a, b) => a.order - b.order);
+        const pathUpdate = {};
+        pathUpdate[`subjects/${subjId}/path`] = path.map(p => p.id);
+        await update(ref(db), pathUpdate);
 
         showToast(`${currentExcelRows.length} ta mavzu yuklandi! 🎉`, 'success');
         document.getElementById('excelPreviewModal').classList.add('hidden');
