@@ -80,7 +80,8 @@ async function loadTeacherSubjects() {
             const s = subjects[id];
             const lessons = s.lessons || {};
             const lessonsCount = Object.keys(lessons).length;
-            const needsAI = Object.values(lessons).some(l => l.testGenerated === false);
+            // Check if ANY lesson needs AI test generation (testGenerated !== true)
+            const needsAI = lessonsCount > 0 && Object.values(lessons).some(l => l.testGenerated !== true);
 
             return `
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
@@ -430,35 +431,37 @@ async function commitExcelUpload(sinf, subjectName) {
     try {
         setBtnLoading(document.getElementById('confirmExcelBtn'), true);
 
+        // Create class-specific subject name (e.g., "5-sinf Matematika")
+        const fullSubjectName = `${sinf}-sinf ${subjectName}`;
+
         const allSubjects = await DbService.getAllSubjects() || {};
         const normalize = s => s.toString().trim().toLowerCase();
 
+        // Find existing subject with EXACT class+name match
         let subjId = Object.keys(allSubjects).find(id =>
-            allSubjects[id]?.name && normalize(allSubjects[id].name) === normalize(subjectName)
+            allSubjects[id]?.name && normalize(allSubjects[id].name) === normalize(fullSubjectName)
         );
 
-        // ===== STEP 1: Create or update subject first =====
-        if (!subjId) {
-            subjId = `S-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-            await set(ref(db, `subjects/${subjId}`), {
-                id: subjId,
-                name: subjectName,
-                icon: "📚",
-                createdBy: user.uid,
-                createdAt: Date.now(),
-                classes: [parseInt(sinf)],
-                lessons: {},
-                path: []
-            });
+        // ===== STEP 1: Create or REPLACE subject =====
+        if (subjId) {
+            // REPLACE: Delete old lessons first
+            await remove(ref(db, `subjects/${subjId}/lessons`));
+            await remove(ref(db, `tests/${subjId}`)); // Also remove old tests
+            showToast(`"${fullSubjectName}" yangilanmoqda...`, 'success');
         } else {
-            // Update classes only
-            const existing = allSubjects[subjId];
-            const classes = new Set(existing.classes || []);
-            classes.add(parseInt(sinf));
-            await update(ref(db, `subjects/${subjId}`), {
-                classes: Array.from(classes).sort((a, b) => a - b)
-            });
+            subjId = `S-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
         }
+
+        await set(ref(db, `subjects/${subjId}`), {
+            id: subjId,
+            name: fullSubjectName,
+            icon: getSubjectIcon(subjectName),
+            createdBy: user.uid,
+            createdAt: Date.now(),
+            classes: [parseInt(sinf)],
+            lessons: {},
+            path: []
+        });
 
         // ===== STEP 2: Add lessons one by one =====
         const lessonIds = [];
@@ -489,12 +492,12 @@ async function commitExcelUpload(sinf, subjectName) {
         // Log upload
         await set(ref(db, `logs/uploads/upload_${Date.now()}`), {
             timestamp: Date.now(),
-            fileName: `excel_${subjectName}`,
+            fileName: fullSubjectName,
             userUid: user.uid,
             rowCount: currentExcelRows.length
         });
 
-        showToast(`${currentExcelRows.length} ta mavzu yuklandi! 🎉`, 'success');
+        showToast(`"${fullSubjectName}" - ${currentExcelRows.length} ta mavzu yuklandi! 🎉`, 'success');
         document.getElementById('excelPreviewModal').classList.add('hidden');
         document.getElementById('excelUploadSection').classList.add('hidden');
         loadTeacherSubjects();
@@ -504,6 +507,22 @@ async function commitExcelUpload(sinf, subjectName) {
     } finally {
         setBtnLoading(document.getElementById('confirmExcelBtn'), false);
     }
+}
+
+// Helper to get subject icon
+function getSubjectIcon(subjectName) {
+    const name = subjectName.toLowerCase();
+    if (name.includes('matematik')) return '📐';
+    if (name.includes('fizik')) return '⚡';
+    if (name.includes('kimyo')) return '🧪';
+    if (name.includes('biolog')) return '🧬';
+    if (name.includes('tarix')) return '📜';
+    if (name.includes('geografiya')) return '🌍';
+    if (name.includes('ingliz') || name.includes('english')) return '🇬🇧';
+    if (name.includes('rus')) return '🇷🇺';
+    if (name.includes('adabiy')) return '📖';
+    if (name.includes('inform')) return '💻';
+    return '📚';
 }
 
 // --- Save Test to DB ---

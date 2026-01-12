@@ -76,6 +76,10 @@ if (registerForm) {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+            // Get phone numbers for teachers
+            const phone1 = document.getElementById('phone1')?.value || '';
+            const phone2 = document.getElementById('phone2')?.value || '';
+
             const userData = {
                 uid: user.uid,
                 name,
@@ -84,7 +88,8 @@ if (registerForm) {
                 email,
                 streak: 0,
                 lastActive: null,
-                progress: {}
+                progress: {},
+                ...(role === 'teacher' ? { phone1, phone2 } : {})
             };
 
             await set(ref(db, 'users/' + user.uid), userData);
