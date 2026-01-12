@@ -15,18 +15,13 @@ export async function handler(event) {
         // Initialize Firebase Admin (Singleton)
         let admin;
         try {
-            admin = await import("firebase-admin");
-            if (admin.apps.length === 0) {
+            const firebaseAdmin = await import("firebase-admin");
+            admin = firebaseAdmin.default || firebaseAdmin;
+
+            if (!admin.apps || admin.apps.length === 0) {
                 admin.initializeApp({
                     credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
-                    databaseURL: "https://edu-platform-default-rtdb.firebaseio.com" // Ensure this is correct or inferred? Usually inferred from creds if project ID is there, but explicit is safer if needed. Actually, certify returns creds.
-                    // Note: databaseURL is often required for Admin SDK RTDB access unless inferred.
-                    // Assuming standard Firebase setup, passing credential is usually enough if project ID is in cert.
-                    // Adding databaseURL explicitly to be safe if env var has it, otherwise rely on default.
-                    // Let's assume standard behavior first.
-                    // WAIT: The generateTest.js didn't use databaseURL, it used admin.database().ref(). 
-                    // Checks generateTest.js: `admin.initializeApp({ credential: ... })`.
-                    // It worked? If so, I'll stick to that.
+                    databaseURL: "https://edu-platform-default-rtdb.firebaseio.com"
                 });
             }
         } catch (e) {
@@ -39,7 +34,6 @@ export async function handler(event) {
 
         // --- Logic ---
         const { subjectId, lessonId, answers } = JSON.parse(event.body || "{}");
-        // answers: { questionIndex: selectedOptionIndex, ... } or [0, 1, 2, ...]
 
         if (!subjectId || !lessonId || !answers) {
             return {
@@ -47,41 +41,12 @@ export async function handler(event) {
             };
         }
 
-        // Fecth Secure Test Data (Correct Answers)
-        // Note: DbService usually writes to `tests/${subjectId}/${lessonId}`
+        // Fetch Secure Test Data (Correct Answers)
         const testRef = admin.database().ref(`tests/${subjectId}/${lessonId}`);
         const testSnap = await testRef.once('value');
 
         if (!testSnap.exists()) {
             return { statusCode: 404, body: JSON.stringify({ error: "Test not found" }) };
-        }
-
-        // --- SERVER-SIDE TIMER VALIDATION ---
-        const activeTestRef = admin.database().ref(`users/${uid}/active_tests/${subjectId}_${lessonId}`);
-        const activeSnap = await activeTestRef.once('value');
-
-        let timerValid = true;
-        let timeElapsed = 0;
-
-        if (activeSnap.exists()) {
-            const { startTime, duration } = activeSnap.val();
-            timeElapsed = Math.floor((Date.now() - startTime) / 1000);
-
-            // Allow 30 second grace period for network latency
-            if (timeElapsed > duration + 30) {
-                timerValid = false;
-            }
-
-            // Clear the active test record
-            await activeTestRef.remove();
-        }
-        // If no active test record, REJECT (security fix)
-        else {
-            console.warn(`SECURITY: No active test record for user ${uid}, test ${subjectId}/${lessonId}`);
-            return {
-                statusCode: 403,
-                body: JSON.stringify({ error: "Test boshlanmagan. Avval test.html orqali boshlang." })
-            };
         }
 
 

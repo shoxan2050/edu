@@ -34,7 +34,7 @@
                     <button onclick="window.location.href='/teacher'" id="profileTeacher"
                         class="hidden w-full p-3 text-left hover:bg-gray-50 rounded-xl text-gray-700">👨‍🏫 O'qituvchi
                         paneli</button>
-                    <button onclick="alert('Sozlamalar keyingi versiyada')"
+                    <button onclick="openSettingsModal()"
                         class="w-full p-3 text-left hover:bg-gray-50 rounded-xl text-gray-700">⚙️ Sozlamalar</button>
                     <button id="profileLogout" class="w-full p-3 text-left hover:bg-red-50 rounded-xl text-red-500">🚪
                         Chiqish</button>
@@ -118,6 +118,131 @@
             </div>
         </div>
     </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+            <div
+                class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white flex justify-between items-center">
+                <h2 class="text-2xl font-bold">⚙️ Sozlamalar</h2>
+                <button onclick="closeSettingsModal()" class="text-white/80 hover:text-white text-2xl">✕</button>
+            </div>
+            <div class="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                <!-- Theme Section -->
+                <div>
+                    <h3 class="font-bold text-gray-900 mb-3">🎨 Mavzu</h3>
+                    <div class="grid grid-cols-5 gap-3">
+                        <button onclick="setTheme('light')"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition"
+                            data-theme="light">
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-xl">☀️
+                            </div>
+                            <span class="text-xs text-gray-500">Yorug'</span>
+                        </button>
+                        <button onclick="setTheme('dark')"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition"
+                            data-theme="dark">
+                            <div class="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center text-xl">🌙
+                            </div>
+                            <span class="text-xs text-gray-500">Qorong'i</span>
+                        </button>
+                        <button onclick="setTheme('neon-purple')"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-purple-500 transition"
+                            data-theme="neon-purple">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-purple-900 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                                💜</div>
+                            <span class="text-xs text-purple-400">Neon</span>
+                        </button>
+                        <button onclick="setTheme('neon-green')"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-green-500 transition"
+                            data-theme="neon-green">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-green-900 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+                                💚</div>
+                            <span class="text-xs text-green-400">Matrix</span>
+                        </button>
+                        <button onclick="setTheme('neon-blue')"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-blue-500 transition"
+                            data-theme="neon-blue">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-blue-900 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(14,165,233,0.5)]">
+                                💙</div>
+                            <span class="text-xs text-blue-400">Cyber</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Password Section -->
+                <div class="border-t border-gray-100 pt-6">
+                    <h3 class="font-bold text-gray-900 mb-3">🔐 Parolni o'zgartirish</h3>
+                    <div class="space-y-3">
+                        <input type="password" id="currentPassword" placeholder="Hozirgi parol"
+                            class="w-full p-4 border border-gray-200 rounded-xl">
+                        <input type="password" id="newPassword" placeholder="Yangi parol"
+                            class="w-full p-4 border border-gray-200 rounded-xl">
+                        <input type="password" id="confirmPassword" placeholder="Yangi parolni tasdiqlang"
+                            class="w-full p-4 border border-gray-200 rounded-xl">
+                        <button onclick="changePassword()"
+                            class="w-full py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600">Parolni
+                            yangilash</button>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-100 flex justify-end">
+                <button onclick="closeSettingsModal()"
+                    class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700">Yopish</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Settings Modal
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            const current = localStorage.getItem('theme') || 'light';
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('border-indigo-500', btn.dataset.theme === current);
+                btn.classList.toggle('bg-indigo-50', btn.dataset.theme === current);
+            });
+        }
+        window.openSettingsModal = openSettingsModal;
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+        window.closeSettingsModal = closeSettingsModal;
+
+        // Theme
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('border-indigo-500', btn.dataset.theme === theme);
+                btn.classList.toggle('bg-indigo-50', btn.dataset.theme === theme);
+            });
+        }
+        window.setTheme = setTheme;
+
+        // Apply saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Password change placeholder
+        function changePassword() {
+            alert('Parol o\'zgartirish funksiyasi keyingi versiyada');
+        }
+
+        // Daily task button - start first available test
+        document.querySelector('#dailyTask button')?.addEventListener('click', function () {
+            const firstTest = document.querySelector('#availableTests button');
+            if (firstTest) {
+                firstTest.click();
+            } else {
+                alert('Hozircha testlar mavjud emas');
+            }
+        });
+    </script>
 
     <script type="module" src="../assets/js/dashboard.js"></script>
 </body>

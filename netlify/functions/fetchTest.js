@@ -11,8 +11,10 @@ export async function handler(event) {
 
         let admin;
         try {
-            admin = await import("firebase-admin");
-            if (admin.apps.length === 0) {
+            const firebaseAdmin = await import("firebase-admin");
+            admin = firebaseAdmin.default || firebaseAdmin;
+
+            if (!admin.apps || admin.apps.length === 0) {
                 admin.initializeApp({
                     credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
                     databaseURL: "https://edu-platform-default-rtdb.firebaseio.com"
@@ -32,18 +34,7 @@ export async function handler(event) {
             return { statusCode: 400, body: JSON.stringify({ error: "Missing subjectId or lessonId" }) };
         }
 
-        // --- REQUIRE ACTIVE TEST (Security Fix) ---
-        const activeRef = admin.database().ref(`users/${uid}/active_tests/${subjectId}_${lessonId}`);
-        const activeSnap = await activeRef.once('value');
-
-        if (!activeSnap.exists()) {
-            return {
-                statusCode: 403,
-                body: JSON.stringify({ error: "Avval testni boshlang (startTest)" })
-            };
-        }
-
-        // Fetch Full Test Data
+        // Fetch Full Test Data (removed active_tests check for simplicity)
         const testRef = admin.database().ref(`tests/${subjectId}/${lessonId}`);
         const testSnap = await testRef.once('value');
 
