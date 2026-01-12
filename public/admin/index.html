@@ -47,12 +47,40 @@
 
     <!-- Main Content -->
     <main class="flex-grow p-6 lg:p-10">
+        <!-- Header with Profile -->
         <div class="flex justify-between items-center mb-8">
             <div>
                 <h1 class="text-3xl font-bold text-gray-900">🛡️ Admin Boshqaruv</h1>
                 <p class="text-gray-500">Barcha tizim ma'lumotlarini boshqarish</p>
             </div>
-            <div class="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold">ADMIN</div>
+            <div class="flex items-center gap-4">
+                <div class="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold">ADMIN</div>
+                <!-- Profile Button -->
+                <div class="relative">
+                    <button id="profileBtn"
+                        class="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-600 text-white rounded-full flex items-center justify-center text-xl font-bold hover:shadow-lg hover:scale-105 transition-all duration-200 shadow-md">
+                        <span id="profileAvatar">👤</span>
+                    </button>
+                    <!-- Dropdown -->
+                    <div id="profileDropdown"
+                        class="hidden absolute top-14 right-0 bg-white rounded-2xl shadow-2xl border border-gray-100 w-72 overflow-hidden z-50">
+                        <div class="p-4 bg-gradient-to-r from-red-500 to-orange-600 text-white">
+                            <div class="font-bold text-lg" id="dropdownName">Admin</div>
+                            <div class="text-sm opacity-80" id="dropdownEmail">admin@example.com</div>
+                        </div>
+                        <div class="p-2">
+                            <button onclick="openSettingsModal()"
+                                class="w-full p-3 text-left rounded-xl hover:bg-gray-50 flex items-center gap-3">
+                                <span>⚙️</span> Sozlamalar
+                            </button>
+                            <button id="profileLogout"
+                                class="w-full p-3 text-left rounded-xl hover:bg-red-50 text-red-600 flex items-center gap-3">
+                                <span>🚪</span> Chiqish
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Users Panel -->
@@ -140,6 +168,137 @@
                 if (idx === 3) window.loadLogs?.();
             };
         });
+
+        // Profile dropdown toggle
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+        if (profileBtn && profileDropdown) {
+            profileBtn.onclick = () => profileDropdown.classList.toggle('hidden');
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#profileBtn') && !e.target.closest('#profileDropdown')) {
+                    profileDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // Settings Modal
+        function openSettingsModal() {
+            document.getElementById('settingsModal').classList.remove('hidden');
+            profileDropdown?.classList.add('hidden');
+        }
+        window.openSettingsModal = openSettingsModal;
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+        window.closeSettingsModal = closeSettingsModal;
+
+        // Theme
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('border-red-500', btn.dataset.theme === theme);
+                btn.classList.toggle('bg-red-50', btn.dataset.theme === theme);
+            });
+        }
+        window.setTheme = setTheme;
+
+        // Apply saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        // Load user info on auth ready
+        document.addEventListener('authReady', (e) => {
+            const user = e.detail;
+            if (user) {
+                document.getElementById('dropdownName').textContent = user.name || 'Admin';
+                document.getElementById('dropdownEmail').textContent = user.email;
+                document.getElementById('profileAvatar').textContent = (user.name || 'A').charAt(0).toUpperCase();
+            }
+        });
+    </script>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-gradient-to-r from-red-500 to-orange-600 p-6 text-white flex justify-between items-center">
+                <h2 class="text-2xl font-bold">⚙️ Sozlamalar</h2>
+                <button onclick="closeSettingsModal()" class="text-white/80 hover:text-white text-2xl">✕</button>
+            </div>
+            <div class="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+                <!-- Theme Section -->
+                <div>
+                    <h3 class="font-bold text-gray-900 mb-3">🎨 Mavzu</h3>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="setTheme('light')"
+                            class="theme-btn flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-transparent hover:border-red-500 transition"
+                            data-theme="light">
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-xl">☀️
+                            </div>
+                            <span class="text-xs text-gray-500">Yorug'</span>
+                        </button>
+                        <button onclick="setTheme('dark')"
+                            class="theme-btn flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-transparent hover:border-red-500 transition"
+                            data-theme="dark">
+                            <div class="w-12 h-12 rounded-xl bg-gray-900 flex items-center justify-center text-xl">🌙
+                            </div>
+                            <span class="text-xs text-gray-500">Qorong'u</span>
+                        </button>
+                        <button onclick="setTheme('neon')"
+                            class="theme-btn flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-transparent hover:border-red-500 transition"
+                            data-theme="neon">
+                            <div class="w-12 h-12 rounded-xl bg-purple-900 flex items-center justify-center text-xl">💜
+                            </div>
+                            <span class="text-xs text-gray-500">Neon</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Password Section -->
+                <div>
+                    <h3 class="font-bold text-gray-900 mb-3">🔒 Parolni o'zgartirish</h3>
+                    <div class="space-y-3">
+                        <input type="password" id="currentPassword" placeholder="Hozirgi parol"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500 outline-none">
+                        <input type="password" id="newPassword" placeholder="Yangi parol"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500 outline-none">
+                        <button onclick="changePassword()"
+                            class="w-full py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition">
+                            Parolni yangilash
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email Section -->
+                <div>
+                    <h3 class="font-bold text-gray-900 mb-3">📧 Emailni o'zgartirish</h3>
+                    <div class="space-y-3">
+                        <input type="email" id="newEmail" placeholder="Yangi email"
+                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-red-500 outline-none">
+                        <button onclick="changeEmail()"
+                            class="w-full py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300 transition">
+                            Emailni yangilash
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { logout } from '../assets/js/auth.js';
+        document.getElementById('profileLogout').onclick = logout;
+
+        // Password change placeholder
+        window.changePassword = function () {
+            alert('Parol o\'zgartirish funksiyasi keyingi versiyada');
+        };
+
+        // Email change placeholder
+        window.changeEmail = function () {
+            alert('Email o\'zgartirish funksiyasi keyingi versiyada');
+        };
     </script>
 </body>
 
