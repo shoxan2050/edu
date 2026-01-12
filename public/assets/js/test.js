@@ -9,8 +9,11 @@ const subjectId = urlParams.get('subject');
 let questions = [];
 let currentIdx = 0;
 let userAnswers = [];
+let skippedQuestions = []; // Track skipped questions
 let timerInterval = null;
 let startTime = null;
+let fiftyFiftyUsed = 0;
+const MAX_FIFTY_FIFTY = 2;
 
 const container = document.querySelector('main') || document.body;
 
@@ -27,7 +30,6 @@ const init = async (user) => {
     }
 
     try {
-        // Direct Firebase load - no backend needed
         const testData = await DbService.getTests(subjectId, lessonId);
 
         if (!testData || !testData.questions || testData.questions.length === 0) {
@@ -36,7 +38,9 @@ const init = async (user) => {
         }
 
         questions = testData.questions;
+        userAnswers = new Array(questions.length).fill(null);
         startTime = Date.now();
+        updateFiftyFiftyCounter();
         renderQuestion();
         startTimer();
 
@@ -63,8 +67,40 @@ function startTimer() {
     }, 1000);
 }
 
+// Update 50:50 counter
+function updateFiftyFiftyCounter() {
+    const countEl = document.getElementById('fiftyFiftyCount');
+    const btnEl = document.getElementById('fiftyFiftyBtn');
+    const remaining = MAX_FIFTY_FIFTY - fiftyFiftyUsed;
+
+    if (countEl) countEl.textContent = remaining;
+    if (btnEl && remaining <= 0) {
+        btnEl.disabled = true;
+        btnEl.classList.add('opacity-40', 'cursor-not-allowed');
+    }
+}
+
+// Update skipped counter
+function updateSkippedCounter() {
+    const countEl = document.getElementById('skippedCount');
+    if (countEl) {
+        countEl.textContent = skippedQuestions.length;
+        countEl.classList.toggle('hidden', skippedQuestions.length === 0);
+    }
+}
+
 // Render Question
 function renderQuestion() {
+    if (currentIdx >= questions.length) {
+        // Check if there are skipped questions
+        if (skippedQuestions.length > 0) {
+            showSkippedQuestions();
+        } else {
+            finishTest();
+        }
+        return;
+    }
+
     const q = questions[currentIdx];
     const progress = ((currentIdx + 1) / questions.length) * 100;
 
@@ -77,6 +113,9 @@ function renderQuestion() {
     // Question
     const questionTitle = document.getElementById('questionTitle');
     if (questionTitle) questionTitle.textContent = q.question;
+
+    // Reset 50:50 state for this question
+    currentQuestionFiftyFiftyUsed = false;
 
     // Options
     const grid = document.getElementById('optionsGrid');
@@ -100,9 +139,16 @@ function renderQuestion() {
         submitBtn.disabled = true;
         submitBtn.classList.add('opacity-50');
     }
+
+    // Update skip button visibility
+    const skipBtn = document.getElementById('skipBtn');
+    if (skipBtn) {
+        skipBtn.classList.remove('hidden');
+    }
 }
 
 let selectedOpt = null;
+let currentQuestionFiftyFiftyUsed = false;
 
 function selectOption(idx) {
     selectedOpt = idx;
@@ -114,6 +160,76 @@ function selectOption(idx) {
     if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.classList.remove('opacity-50');
+    }
+}
+
+// 50:50 Helper - removes 2 wrong answers
+window.useFiftyFifty = function () {
+    if (fiftyFiftyUsed >= MAX_FIFTY_FIFTY) {
+        showToast("50:50 tugadi! ❌", "error");
+        return;
+    }
+    if (currentQuestionFiftyFiftyUsed) {
+        showToast("Bu savolda 50:50 ishlatilgan!", "error");
+        return;
+    }
+
+    const q = questions[currentIdx];
+    const correctIdx = q.correct;
+
+    // Get wrong answer indices
+    const wrongIndices = q.options
+        .map((_, i) => i)
+        .filter(i => i !== correctIdx);
+
+    // Shuffle and pick 2 to hide
+    const toHide = wrongIndices.sort(() => Math.random() - 0.5).slice(0, 2);
+
+    // Hide the wrong options
+    toHide.forEach(idx => {
+        const btn = document.querySelector(`.option-btn[data-index="${idx}"]`);
+        if (btn) {
+            btn.classList.add('opacity-30', 'pointer-events-none', 'line-through');
+            btn.style.textDecoration = 'line-through';
+        }
+    });
+
+    fiftyFiftyUsed++;
+    currentQuestionFiftyFiftyUsed = true;
+    updateFiftyFiftyCounter();
+    showToast("2 ta noto'g'ri javob olib tashlandi! ✂️", "success");
+};
+
+// Skip question for later
+window.skipQuestion = function () {
+    if (!skippedQuestions.includes(currentIdx)) {
+        skippedQuestions.push(currentIdx);
+        updateSkippedCounter();
+    }
+
+    selectedOpt = null;
+    currentIdx++;
+    renderQuestion();
+};
+
+// Show skipped questions
+function showSkippedQuestions() {
+    if (skippedQuestions.length === 0) {
+        finishTest();
+        return;
+    }
+
+    showToast(`${skippedQuestions.length} ta o'tkazilgan savol bor!`, "info");
+
+    // Get first skipped question
+    currentIdx = skippedQuestions.shift();
+    updateSkippedCounter();
+    renderQuestion();
+
+    // Hide skip button for skipped questions
+    const skipBtn = document.getElementById('skipBtn');
+    if (skipBtn) {
+        skipBtn.classList.add('hidden');
     }
 }
 
@@ -135,11 +251,7 @@ if (submitBtn) {
         setTimeout(() => {
             currentIdx++;
             selectedOpt = null;
-            if (currentIdx < questions.length) {
-                renderQuestion();
-            } else {
-                finishTest();
-            }
+            renderQuestion();
         }, 300);
     };
 }
@@ -155,9 +267,17 @@ async function finishTest() {
 
     // Grade locally
     let correctCount = 0;
+    let wrongQuestions = [];
+
     questions.forEach((q, idx) => {
         if (userAnswers[idx] === q.correct) {
             correctCount++;
+        } else {
+            wrongQuestions.push({
+                question: q.question,
+                userAnswer: userAnswers[idx] !== null ? q.options[userAnswers[idx]] : 'Javob berilmagan',
+                correctAnswer: q.options[q.correct]
+            });
         }
     });
 
@@ -167,12 +287,18 @@ async function finishTest() {
     try {
         await DbService.saveUserProgress(user.uid, subjectId, lessonId, scorePercent);
         await DbService.saveTestResult(user.uid, subjectId, lessonId, scorePercent, userAnswers);
+
+        // Save wrong questions for retry feature
+        if (wrongQuestions.length > 0) {
+            sessionStorage.setItem('wrongQuestions', JSON.stringify(wrongQuestions));
+        }
     } catch (e) {
         console.error("Save error:", e);
     }
 
-    // Redirect to result
-    window.location.href = `/result?subject=${subjectId}&lesson=${lessonId}&score=${scorePercent}&correct=${correctCount}&total=${questions.length}`;
+    // Redirect to result with confetti flag
+    const confetti = scorePercent >= 70 ? '&confetti=1' : '';
+    window.location.href = `/result?subject=${subjectId}&lesson=${lessonId}&score=${scorePercent}&correct=${correctCount}&total=${questions.length}${confetti}`;
 }
 
 window.addEventListener("beforeunload", () => {

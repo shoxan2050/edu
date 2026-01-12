@@ -1,6 +1,7 @@
 import { auth } from './firebase.js';
 import { logout, showToast } from './auth.js';
 import { DbService } from './modules/db-service.js';
+import { getUserBadges, renderBadges, getWeeklyLeaderboard, renderLeaderboard } from './badges.js';
 
 const list = document.getElementById('subjectsList');
 
@@ -208,3 +209,39 @@ if (profileBtn && profileDropdown) {
 
 const profileLogout = document.getElementById('profileLogout');
 if (profileLogout) profileLogout.onclick = logout;
+
+// Load badges and leaderboard when auth is ready
+async function loadBadgesAndLeaderboard(user, userClass) {
+    try {
+        // Load user badges
+        const badges = await getUserBadges(user.uid);
+        if (Object.keys(badges).length > 0) {
+            const container = document.getElementById('badgesContainer');
+            if (container) {
+                container.innerHTML = Object.entries(badges).map(([id, badge]) => `
+                    <div class="bg-gradient-to-br from-yellow-50 to-amber-100 p-6 rounded-2xl border border-amber-200 text-center">
+                        <span class="text-4xl">${badge.icon}</span>
+                        <div class="text-sm font-bold text-gray-900 mt-2">${badge.name}</div>
+                        <div class="text-xs text-amber-600">${new Date(badge.earnedAt).toLocaleDateString('uz')}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Load leaderboard
+        const leaderboard = await getWeeklyLeaderboard(userClass);
+        renderLeaderboard(leaderboard, 'leaderboardContainer', 5);
+    } catch (e) {
+        console.error('Badges/Leaderboard error:', e);
+    }
+}
+
+// Call after user data is loaded
+document.addEventListener('authReady', async (e) => {
+    const user = e.detail;
+    if (user) {
+        const userData = await DbService.getUser(user.uid);
+        const userClass = parseInt(userData?.sinf) || 0;
+        loadBadgesAndLeaderboard(user, userClass);
+    }
+});

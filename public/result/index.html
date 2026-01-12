@@ -7,26 +7,86 @@
     <title>Natija - EduPlatform</title>
     <script type="module" src="../assets/js/guard.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/main.css">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
+
+        @keyframes bounce-in {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .bounce-in {
+            animation: bounce-in 0.6s ease-out forwards;
+        }
+
+        .float {
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .level-up-badge {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            animation: bounce-in 0.8s 0.3s ease-out both;
+        }
     </style>
 </head>
 
 <body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+    <!-- Confetti Canvas -->
+    <div id="confettiContainer" class="fixed inset-0 pointer-events-none z-50"></div>
+
     <div
-        class="bg-white w-full max-w-md p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 text-center animate-in zoom-in duration-500">
-        <div id="resultEmoji" class="text-8xl mb-6">🎉</div>
-        <h1 class="text-3xl font-bold text-gray-900 mb-2">Tabriklaymiz!</h1>
-        <p class="text-gray-500 mb-8">Siz darsni muvaffaqiyatli yakunladingiz</p>
+        class="bg-white w-full max-w-md p-10 rounded-[2.5rem] shadow-2xl border border-gray-100 text-center animate-in zoom-in duration-500 relative z-10">
+
+        <!-- Level Up Badge (Hidden by default) -->
+        <div id="levelUpBadge"
+            class="hidden level-up-badge text-white px-6 py-3 rounded-2xl font-bold text-lg mb-6 shadow-lg">
+            🎖️ Yangi daraja ochildi!
+        </div>
+
+        <div id="resultEmoji" class="text-8xl mb-6 float">🎉</div>
+        <h1 id="resultTitle" class="text-3xl font-bold text-gray-900 mb-2">Tabriklaymiz!</h1>
+        <p id="resultDesc" class="text-gray-500 mb-8">Siz darsni muvaffaqiyatli yakunladingiz</p>
 
         <div class="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 mb-8">
             <div class="text-5xl font-bold text-indigo-600 mb-1"><span id="scoreText">0</span>%</div>
             <div class="text-indigo-400 font-semibold uppercase tracking-widest text-sm">To'g'ri javoblar</div>
             <div id="correctInfo" class="text-sm text-gray-500 mt-2"></div>
+        </div>
+
+        <!-- Retry wrong questions button -->
+        <div id="retryWrongSection" class="hidden mb-4">
+            <button onclick="retryWrongQuestions()"
+                class="w-full py-4 bg-amber-500 text-white rounded-2xl font-bold text-lg hover:bg-amber-600 transition shadow-lg flex items-center justify-center gap-2">
+                <span class="text-xl">📝</span> Xato savollarni qayta ishlash
+            </button>
         </div>
 
         <div class="space-y-3">
@@ -56,12 +116,66 @@
         const urlParams = new URLSearchParams(window.location.search);
         const subjectId = urlParams.get('subject') || 'math';
         const lessonId = urlParams.get('lesson') || '1';
+        const showConfetti = urlParams.get('confetti') === '1';
+        const correct = urlParams.get('correct');
+        const total = urlParams.get('total');
 
         document.getElementById('backToPath').href = `/path?subject=${subjectId}`;
         document.getElementById('retakeButton').href = `/test?subject=${subjectId}&lesson=${lessonId}`;
 
-        // Verify result from DB (No URL Spoofing)
-        // Guard.js handles auth check first
+        // Show correct/total info
+        if (correct && total) {
+            document.getElementById('correctInfo').textContent = `${correct} / ${total} savol`;
+        }
+
+        // Check for wrong questions in session storage
+        const wrongQuestions = sessionStorage.getItem('wrongQuestions');
+        if (wrongQuestions) {
+            document.getElementById('retryWrongSection').classList.remove('hidden');
+        }
+
+        // Retry wrong questions
+        window.retryWrongQuestions = function () {
+            // This would navigate to a special retry test
+            sessionStorage.setItem('retryMode', 'true');
+            window.location.href = `/test?subject=${subjectId}&lesson=${lessonId}&retry=1`;
+        };
+
+        // Confetti function
+        function fireConfetti() {
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function () {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 50 * (timeLeft / duration);
+
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                    colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                });
+                confetti({
+                    ...defaults,
+                    particleCount,
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                    colors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6']
+                });
+            }, 250);
+        }
+
+        // Render result based on DB
         document.addEventListener('authReady', async (e) => {
             const user = e.detail;
             if (user) {
@@ -71,7 +185,6 @@
                         const realScore = snap.val();
                         renderResult(realScore);
                     } else {
-                        // No record found? Redirect or show 0
                         window.location.href = "/dashboard";
                     }
                 } catch (err) {
@@ -80,7 +193,6 @@
             }
         });
 
-        // Also check global cache if event missed
         if (window.__AUTH_USER__) {
             const user = window.__AUTH_USER__;
             get(ref(db, `users/${user.uid}/progress/${subjectId}/${lessonId}`))
@@ -93,10 +205,24 @@
         function renderResult(score) {
             document.getElementById('scoreText').textContent = score;
 
-            if (score < 80) {
+            if (score >= 70) {
+                // Success! Show confetti and level up
+                document.getElementById('resultEmoji').textContent = '🎉';
+                document.getElementById('resultTitle').textContent = 'Tabriklaymiz!';
+                document.getElementById('resultDesc').textContent = 'Siz darsni muvaffaqiyatli yakunladingiz';
+                document.getElementById('levelUpBadge').classList.remove('hidden');
+
+                // Fire confetti
+                setTimeout(() => fireConfetti(), 300);
+
+            } else if (score >= 50) {
                 document.getElementById('resultEmoji').textContent = '🤔';
-                document.querySelector('h1').textContent = 'Yaxshiroq bo\'lishi mumkin';
-                document.querySelector('p').textContent = 'Mavzuni qayta o\'qib chiqishni tavsiya qilamiz';
+                document.getElementById('resultTitle').textContent = "Yaxshiroq bo'lishi mumkin";
+                document.getElementById('resultDesc').textContent = "Mavzuni qayta o'qib chiqishni tavsiya qilamiz";
+            } else {
+                document.getElementById('resultEmoji').textContent = '😔';
+                document.getElementById('resultTitle').textContent = "Qayta urinib ko'ring";
+                document.getElementById('resultDesc').textContent = "Mavzuni yaxshilab o'rganing va qayta topshiring";
             }
         }
     </script>
