@@ -54,10 +54,13 @@ export async function handler(event) {
 
         await userRef.child(lessonCooldownKey).set(now);
 
-        const API_KEY = process.env.GEMINI_API_KEY;
+        const API_KEY = process.env.OPEN_ROUTER_KEY;
         if (!API_KEY) {
-            return { statusCode: 500, body: JSON.stringify({ error: "Gemini API key missing" }) };
+            return { statusCode: 500, body: JSON.stringify({ error: "OpenRouter API key missing" }) };
         }
+
+        // OpenRouter model - bepul va tez
+        const MODEL = "xiaomi/mimo-v2-flash:free";
 
         // Grade level (default 7)
         const gradeLevel = grade || 7;
@@ -96,28 +99,44 @@ MUHIM:
 - FAQAT JSON qaytar
 `;
 
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
-            {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        response_mime_type: "application/json"
-                    }
-                })
-            }
-        );
+        // OpenRouter API call (OpenAI-compatible format)
+        const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`,
+                "HTTP-Referer": "https://eduplatform.netlify.app",
+                "X-Title": "EduPlatform Test Generator"
+            },
+            body: JSON.stringify({
+                model: MODEL,
+                messages: [
+                    { role: "system", content: "Sen ta'lim platformasi uchun test yaratuvchi AI san. Faqat JSON formatda javob ber." },
+                    { role: "user", content: prompt }
+                ],
+                temperature: 0.7,
+                max_tokens: 2000
+            })
+        });
 
         const data = await res.json();
-        let text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+
+        // OpenRouter response format
+        let text = data?.choices?.[0]?.message?.content || "";
 
         if (!text) {
             throw new Error("AI responded with an empty body. Check API quota.");
         }
 
         // --- ROBUST JSON EXTRACTION ---
+        // JSON ni tozalash (ba'zan markdown code block bilan keladi)
+        text = text.trim();
+        if (text.startsWith('```json')) {
+            text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (text.startsWith('```')) {
+            text = text.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
             text = jsonMatch[0];
