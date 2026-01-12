@@ -6,128 +6,273 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ro'yxatdan o'tish - EduPlatform</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .floating-label {
+            position: absolute;
+            top: 50%;
+            left: 16px;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            background: white;
+            padding: 0 4px;
+        }
+
+        .input-field:focus+.floating-label,
+        .input-field:not(:placeholder-shown)+.floating-label {
+            top: 0;
+            font-size: 12px;
+            color: #4f46e5;
+        }
     </style>
 </head>
 
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Hisob yarating</h1>
-            <p class="text-gray-500 mt-2">O'rganishni boshlash uchun ma'lumotlaringizni kiriting</p>
+<body
+    class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Card -->
+        <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="p-8 pb-4 text-center">
+                <h1 id="stepTitle" class="text-2xl font-bold text-gray-900">Hisob yarating</h1>
+                <p id="stepDesc" class="text-gray-500 mt-1 text-sm">Ismingizni kiriting</p>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="px-8">
+                <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 14%">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Steps -->
+            <div class="p-8 pt-6">
+                <!-- Step 1: Name -->
+                <div class="step active" data-step="1">
+                    <div class="relative mb-4">
+                        <input type="text" id="name"
+                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                            placeholder=" ">
+                        <label class="floating-label">Ism va Familiya</label>
+                    </div>
+                </div>
+
+                <!-- Step 2: Email -->
+                <div class="step" data-step="2">
+                    <div class="relative mb-4">
+                        <input type="email" id="email"
+                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                            placeholder=" ">
+                        <label class="floating-label">Email manzil</label>
+                    </div>
+                </div>
+
+                <!-- Step 3: Password -->
+                <div class="step" data-step="3">
+                    <div class="relative mb-4">
+                        <input type="password" id="password"
+                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                            placeholder=" ">
+                        <label class="floating-label">Parol</label>
+                    </div>
+                </div>
+
+                <!-- Step 4: Confirm Password -->
+                <div class="step" data-step="4">
+                    <div class="relative mb-4">
+                        <input type="password" id="confirmPassword"
+                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                            placeholder=" ">
+                        <label class="floating-label">Parolni tasdiqlang</label>
+                    </div>
+                </div>
+
+                <!-- Step 5: Sinf -->
+                <div class="step" data-step="5">
+                    <select id="class"
+                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                        <option value="">Sinfni tanlang...</option>
+                        <option value="1">1-sinf</option>
+                        <option value="2">2-sinf</option>
+                        <option value="3">3-sinf</option>
+                        <option value="4">4-sinf</option>
+                        <option value="5">5-sinf</option>
+                        <option value="6">6-sinf</option>
+                        <option value="7">7-sinf</option>
+                        <option value="8">8-sinf</option>
+                        <option value="9">9-sinf</option>
+                        <option value="10">10-sinf</option>
+                        <option value="11">11-sinf</option>
+                    </select>
+                </div>
+
+                <!-- Step 6: Viloyat -->
+                <div class="step" data-step="6">
+                    <select id="viloyat" onchange="loadTumanlar()"
+                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                        <option value="">Viloyatni tanlang...</option>
+                    </select>
+                </div>
+
+                <!-- Step 7: Tuman -->
+                <div class="step" data-step="7">
+                    <select id="tuman" onchange="loadMaktablar()"
+                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                        <option value="">Tumanni tanlang...</option>
+                    </select>
+                </div>
+
+                <!-- Step 8: Maktab -->
+                <div class="step" data-step="8">
+                    <select id="maktab"
+                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                        <option value="">Maktabni tanlang...</option>
+                    </select>
+                </div>
+
+                <!-- Continue Button -->
+                <button id="continueBtn" onclick="nextStep()"
+                    class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition">
+                    Davom etish
+                </button>
+
+                <!-- Back Button -->
+                <button id="backBtn" onclick="prevStep()"
+                    class="hidden w-full py-3 mt-3 text-gray-500 font-medium hover:text-gray-700 transition">
+                    ← Orqaga
+                </button>
+            </div>
         </div>
 
-        <form id="registerForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Ism va Familiya</label>
-                <input type="text" id="name" required
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
-                    placeholder="Ali Valiyev">
-            </div>
-
-            <!-- Role selection -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Rol</label>
-                <select id="role" onchange="toggleFieldsByRole()"
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none transition cursor-pointer">
-                    <option value="student">O'quvchi</option>
-                    <option value="teacher">O'qituvchi</option>
-                </select>
-            </div>
-
-            <!-- Class field - only for students -->
-            <div id="classField">
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Sinf</label>
-                <select id="class"
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none transition cursor-pointer">
-                    <option value="1">1-sinf</option>
-                    <option value="2">2-sinf</option>
-                    <option value="3">3-sinf</option>
-                    <option value="4">4-sinf</option>
-                    <option value="5">5-sinf</option>
-                    <option value="6">6-sinf</option>
-                    <option value="7">7-sinf</option>
-                    <option value="8">8-sinf</option>
-                    <option value="9">9-sinf</option>
-                    <option value="10">10-sinf</option>
-                    <option value="11">11-sinf</option>
-                </select>
-            </div>
-
-            <!-- School Selection - Cascading Dropdowns -->
-            <div id="schoolSection">
-                <label class="block text-sm font-semibold text-gray-700 mb-1">🏫 Maktabni tanlang</label>
-
-                <!-- Viloyat -->
-                <select id="viloyat" onchange="loadTumanlar()"
-                    class="w-full px-4 py-3 mb-2 rounded-xl border border-gray-200 outline-none transition cursor-pointer">
-                    <option value="">Viloyatni tanlang...</option>
-                </select>
-
-                <!-- Tuman -->
-                <select id="tuman" onchange="loadMaktablar()" disabled
-                    class="w-full px-4 py-3 mb-2 rounded-xl border border-gray-200 outline-none transition cursor-pointer disabled:bg-gray-100">
-                    <option value="">Tumanni tanlang...</option>
-                </select>
-
-                <!-- Maktab -->
-                <select id="maktab" disabled
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none transition cursor-pointer disabled:bg-gray-100">
-                    <option value="">Maktabni tanlang...</option>
-                </select>
-
-                <p class="text-xs text-gray-400 mt-1">Maktab raqami dashboard da ko'rinadi</p>
-            </div>
-
-            <!-- Phone field - for ALL users (password recovery) -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">📱 Telefon raqam</label>
-                <input type="tel" id="phone1" required
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                    placeholder="+998 90 123 45 67">
-                <p class="text-xs text-gray-400 mt-1">Parolni tiklash uchun ishlatiladi</p>
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <input type="email" id="email" required
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                    placeholder="example@mail.com">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Parol</label>
-                <input type="password" id="password" required
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                    placeholder="••••••••">
-            </div>
-
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Parolni tasdiqlash</label>
-                <input type="password" id="confirmPassword" required
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                    placeholder="••••••••">
-            </div>
-
-            <button type="submit"
-                class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 text-lg mt-2">
-                Ro'yxatdan o'tish
-            </button>
-        </form>
-
-        <p class="text-center mt-6 text-gray-600">
-            Hisobingiz bormi? <a href="/login" class="text-indigo-600 font-semibold hover:underline">Kirish</a>
+        <!-- Login Link -->
+        <p class="text-center mt-6 text-white/80">
+            Hisobingiz bormi? <a href="/login" class="text-white font-semibold hover:underline">Kirish</a>
         </p>
     </div>
 
     <script>
+        let currentStep = 1;
+        const totalSteps = 8;
         let maktablarData = [];
 
-        // Load maktablar data on page load
+        const stepInfo = {
+            1: { title: "Hisob yarating", desc: "Ismingizni kiriting" },
+            2: { title: "Email", desc: "Email manzilingizni kiriting" },
+            3: { title: "Parol", desc: "Xavfsiz parol yarating" },
+            4: { title: "Tasdiqlash", desc: "Parolni qayta kiriting" },
+            5: { title: "Sinf", desc: "Qaysi sinfda o'qiysiz?" },
+            6: { title: "Viloyat", desc: "Viloyatingizni tanlang" },
+            7: { title: "Tuman", desc: "Tumaningizni tanlang" },
+            8: { title: "Maktab", desc: "Maktabingizni tanlang" }
+        };
+
+        function updateUI() {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+
+            document.getElementById('stepTitle').textContent = stepInfo[currentStep].title;
+            document.getElementById('stepDesc').textContent = stepInfo[currentStep].desc;
+            document.getElementById('progressBar').style.width = `${(currentStep / totalSteps) * 100}%`;
+
+            document.getElementById('backBtn').classList.toggle('hidden', currentStep === 1);
+            document.getElementById('continueBtn').textContent = currentStep === totalSteps ? "Ro'yxatdan o'tish" : "Davom etish";
+        }
+
+        function getStepValue(step) {
+            switch (step) {
+                case 1: return document.getElementById('name').value.trim();
+                case 2: return document.getElementById('email').value.trim();
+                case 3: return document.getElementById('password').value;
+                case 4: return document.getElementById('confirmPassword').value;
+                case 5: return document.getElementById('class').value;
+                case 6: return document.getElementById('viloyat').value;
+                case 7: return document.getElementById('tuman').value;
+                case 8: return document.getElementById('maktab').value;
+            }
+        }
+
+        function validateStep() {
+            const value = getStepValue(currentStep);
+
+            if (currentStep === 1 && !value) {
+                alert("Iltimos, ismingizni kiriting");
+                return false;
+            }
+            if (currentStep === 2) {
+                if (!value) { alert("Iltimos, email kiriting"); return false; }
+                if (!value.includes('@')) { alert("Noto'g'ri email formati"); return false; }
+            }
+            if (currentStep === 3) {
+                if (!value) { alert("Iltimos, parol kiriting"); return false; }
+                if (value.length < 6) { alert("Parol kamida 6 ta belgi bo'lishi kerak"); return false; }
+            }
+            if (currentStep === 4) {
+                const password = document.getElementById('password').value;
+                if (value !== password) { alert("Parollar mos kelmaydi"); return false; }
+            }
+            if (currentStep >= 5 && currentStep <= 8 && !value) {
+                alert("Iltimos, tanlang");
+                return false;
+            }
+            return true;
+        }
+
+        function nextStep() {
+            if (!validateStep()) return;
+
+            if (currentStep === totalSteps) {
+                submitForm();
+                return;
+            }
+
+            currentStep++;
+            updateUI();
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        async function submitForm() {
+            const btn = document.getElementById('continueBtn');
+            btn.disabled = true;
+            btn.textContent = "Yuklanmoqda...";
+
+            // Trigger the auth.js registration
+            const event = new CustomEvent('multiStepRegister', {
+                detail: {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value,
+                    sinf: document.getElementById('class').value,
+                    viloyat: document.getElementById('viloyat').value,
+                    tuman: document.getElementById('tuman').value,
+                    maktab: document.getElementById('maktab').value,
+                    role: 'student'
+                }
+            });
+            document.dispatchEvent(event);
+        }
+
+        // Maktablar data loading
         async function loadMaktablarData() {
             try {
                 const response = await fetch('/assets/data/maktablar.json');
@@ -138,66 +283,43 @@
             }
         }
 
-        // Populate viloyatlar dropdown
         function loadViloyatlar() {
             const viloyatSelect = document.getElementById('viloyat');
             const uniqueViloyatlar = [...new Set(maktablarData.map(m => m.viloyat))].sort();
-
             viloyatSelect.innerHTML = '<option value="">Viloyatni tanlang...</option>';
             uniqueViloyatlar.forEach(v => {
                 viloyatSelect.innerHTML += `<option value="${v}">${v}</option>`;
             });
         }
 
-        // Populate tumanlar based on selected viloyat
         function loadTumanlar() {
             const viloyat = document.getElementById('viloyat').value;
             const tumanSelect = document.getElementById('tuman');
-            const maktabSelect = document.getElementById('maktab');
-
-            // Reset child selects
             tumanSelect.innerHTML = '<option value="">Tumanni tanlang...</option>';
-            maktabSelect.innerHTML = '<option value="">Maktabni tanlang...</option>';
-            maktabSelect.disabled = true;
 
-            if (!viloyat) {
-                tumanSelect.disabled = true;
-                return;
-            }
+            if (!viloyat) return;
 
-            // Get unique tumanlar for selected viloyat
             const tumanlar = [...new Set(
-                maktablarData
-                    .filter(m => m.viloyat === viloyat)
-                    .map(m => m.tuman)
+                maktablarData.filter(m => m.viloyat === viloyat).map(m => m.tuman)
             )].sort();
 
             tumanlar.forEach(t => {
                 tumanSelect.innerHTML += `<option value="${t}">${t}</option>`;
             });
-
-            tumanSelect.disabled = false;
         }
 
-        // Populate maktablar based on selected tuman
         function loadMaktablar() {
             const viloyat = document.getElementById('viloyat').value;
             const tuman = document.getElementById('tuman').value;
             const maktabSelect = document.getElementById('maktab');
-
             maktabSelect.innerHTML = '<option value="">Maktabni tanlang...</option>';
 
-            if (!tuman) {
-                maktabSelect.disabled = true;
-                return;
-            }
+            if (!tuman) return;
 
-            // Get maktablar for selected viloyat and tuman
             const maktablar = maktablarData
                 .filter(m => m.viloyat === viloyat && m.tuman === tuman)
                 .map(m => m.maktab)
                 .sort((a, b) => {
-                    // Sort by number if starts with number
                     const aNum = parseInt(a.match(/^\d+/)?.[0]) || 999;
                     const bNum = parseInt(b.match(/^\d+/)?.[0]) || 999;
                     return aNum - bNum || a.localeCompare(b);
@@ -206,25 +328,13 @@
             maktablar.forEach(m => {
                 maktabSelect.innerHTML += `<option value="${m}">${m}</option>`;
             });
-
-            maktabSelect.disabled = false;
         }
 
-        function toggleFieldsByRole() {
-            const role = document.getElementById('role').value;
-            const classField = document.getElementById('classField');
-            const schoolSection = document.getElementById('schoolSection');
+        // Enter key to continue
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') nextStep();
+        });
 
-            if (role === 'teacher') {
-                classField.classList.add('hidden');
-                schoolSection.classList.add('hidden');
-            } else {
-                classField.classList.remove('hidden');
-                schoolSection.classList.remove('hidden');
-            }
-        }
-
-        // Load data on page load
         document.addEventListener('DOMContentLoaded', loadMaktablarData);
     </script>
     <script type="module" src="../assets/js/auth.js"></script>

@@ -191,3 +191,84 @@ export const logout = async () => {
     await signOut(auth);
     window.location.href = '/login';
 };
+
+// Multi-Step Registration Handler
+document.addEventListener('multiStepRegister', async (e) => {
+    const data = e.detail;
+
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        const user = userCredential.user;
+
+        const userData = {
+            uid: user.uid,
+            name: data.name,
+            sinf: data.sinf,
+            role: data.role || 'student',
+            email: data.email,
+            phone: '',
+            viloyat: data.viloyat,
+            tuman: data.tuman,
+            maktab: data.maktab,
+            streak: 0,
+            lastActive: null,
+            progress: {}
+        };
+
+        await set(ref(db, 'users/' + user.uid), userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+
+        showToast("Hisob muvaffaqiyatli yaratildi! 🎉");
+        setTimeout(() => window.location.href = '/dashboard', 1500);
+    } catch (error) {
+        showToast(getFriendlyErrorMessage(error.code), 'error');
+        const btn = document.getElementById('continueBtn');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Qayta urinish";
+        }
+    }
+});
+
+// Multi-Step Login Handler
+document.addEventListener('multiStepLogin', async (e) => {
+    const data = e.detail;
+
+    try {
+        await setPersistence(auth, browserLocalPersistence);
+        const userCredential = await signInWithEmailAndPassword(auth, data.email, data.password);
+        const user = userCredential.user;
+
+        const userSnap = await get(ref(db, 'users/' + user.uid));
+        const userData = userSnap.val();
+
+        if (userData) {
+            localStorage.setItem("user", JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                ...userData
+            }));
+
+            // Update last active
+            await update(ref(db, 'users/' + user.uid), { lastActive: Date.now() });
+
+            showToast("Muvaffaqiyatli kirishingiz! 🎉");
+
+            // Redirect based on role
+            if (userData.role === 'teacher') {
+                setTimeout(() => window.location.href = '/teacher', 1500);
+            } else if (userData.role === 'admin') {
+                setTimeout(() => window.location.href = '/admin', 1500);
+            } else {
+                setTimeout(() => window.location.href = '/dashboard', 1500);
+            }
+        }
+    } catch (error) {
+        showToast(getFriendlyErrorMessage(error.code), 'error');
+        const btn = document.getElementById('continueBtn');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Qayta urinish";
+        }
+    }
+});

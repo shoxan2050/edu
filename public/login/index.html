@@ -6,89 +6,187 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kirish - EduPlatform</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .floating-label {
+            position: absolute;
+            top: 50%;
+            left: 16px;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            pointer-events: none;
+            transition: all 0.2s ease;
+            background: white;
+            padding: 0 4px;
+        }
+
+        .input-field:focus+.floating-label,
+        .input-field:not(:placeholder-shown)+.floating-label {
+            top: 0;
+            font-size: 12px;
+            color: #4f46e5;
+        }
     </style>
 </head>
 
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
-        <div class="text-center mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Xush kelibsiz</h1>
-            <p class="text-gray-500 mt-2">Tizimga kirish uchun ma'lumotlaringizni kiriting</p>
-        </div>
-
-        <form id="loginForm" class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Email</label>
-                <input type="email" id="email" required
-                    class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                    placeholder="example@mail.com">
+<body
+    class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+        <!-- Card -->
+        <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden">
+            <!-- Header -->
+            <div class="p-8 pb-4 text-center">
+                <h1 id="stepTitle" class="text-2xl font-bold text-gray-900">Xush kelibsiz</h1>
+                <p id="stepDesc" class="text-gray-500 mt-1 text-sm">Email manzilingizni kiriting</p>
             </div>
 
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-1">Parol</label>
-                <div class="relative">
-                    <input type="password" id="password" required
-                        class="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
-                        placeholder="••••••••">
-                    <button type="button" onclick="togglePassword()"
-                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1">
-                        <svg id="eyeOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        <svg id="eyeClosed" class="w-5 h-5 hidden" fill="none" stroke="currentColor"
-                            viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                    </button>
+            <!-- Progress bar -->
+            <div class="px-8">
+                <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 50%">
+                    </div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between">
-                <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" id="remember"
-                        class="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500">
-                    <span class="text-sm text-gray-600">Eslab qolish</span>
-                </label>
-                <a href="#" class="text-sm text-indigo-600 font-semibold hover:underline">Parolni unutdingizmi?</a>
+            <!-- Form Steps -->
+            <div class="p-8 pt-6">
+                <!-- Step 1: Email -->
+                <div class="step active" data-step="1">
+                    <div class="relative mb-4">
+                        <input type="email" id="email"
+                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                            placeholder=" ">
+                        <label class="floating-label">Email manzil</label>
+                    </div>
+                </div>
+
+                <!-- Step 2: Password -->
+                <div class="step" data-step="2">
+                    <div class="relative mb-4">
+                        <input type="password" id="password"
+                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                            placeholder=" ">
+                        <label class="floating-label">Parol</label>
+                    </div>
+                </div>
+
+                <!-- Continue Button -->
+                <button id="continueBtn" onclick="nextStep()"
+                    class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition">
+                    Davom etish
+                </button>
+
+                <!-- Back Button -->
+                <button id="backBtn" onclick="prevStep()"
+                    class="hidden w-full py-3 mt-3 text-gray-500 font-medium hover:text-gray-700 transition">
+                    ← Orqaga
+                </button>
             </div>
+        </div>
 
-            <button type="submit"
-                class="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 text-lg mt-2">
-                Kirish
-            </button>
-        </form>
-
-        <p class="text-center mt-6 text-gray-600">
-            Hisobingiz yo'qmi? <a href="/register" class="text-indigo-600 font-semibold hover:underline">Ro'yxatdan
+        <!-- Register Link -->
+        <p class="text-center mt-6 text-white/80">
+            Hisobingiz yo'qmi? <a href="/register" class="text-white font-semibold hover:underline">Ro'yxatdan
                 o'tish</a>
         </p>
     </div>
 
     <script>
-        function togglePassword() {
-            const input = document.getElementById('password');
-            const eyeOpen = document.getElementById('eyeOpen');
-            const eyeClosed = document.getElementById('eyeClosed');
+        let currentStep = 1;
+        const totalSteps = 2;
 
-            if (input.type === 'password') {
-                input.type = 'text';
-                eyeOpen.classList.add('hidden');
-                eyeClosed.classList.remove('hidden');
-            } else {
-                input.type = 'password';
-                eyeOpen.classList.remove('hidden');
-                eyeClosed.classList.add('hidden');
+        const stepInfo = {
+            1: { title: "Xush kelibsiz", desc: "Email manzilingizni kiriting" },
+            2: { title: "Parol", desc: "Parolingizni kiriting" }
+        };
+
+        function updateUI() {
+            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+
+            document.getElementById('stepTitle').textContent = stepInfo[currentStep].title;
+            document.getElementById('stepDesc').textContent = stepInfo[currentStep].desc;
+            document.getElementById('progressBar').style.width = `${(currentStep / totalSteps) * 100}%`;
+
+            document.getElementById('backBtn').classList.toggle('hidden', currentStep === 1);
+            document.getElementById('continueBtn').textContent = currentStep === totalSteps ? "Kirish" : "Davom etish";
+        }
+
+        function getStepValue(step) {
+            switch (step) {
+                case 1: return document.getElementById('email').value.trim();
+                case 2: return document.getElementById('password').value;
             }
         }
+
+        function validateStep() {
+            const value = getStepValue(currentStep);
+
+            if (currentStep === 1) {
+                if (!value) { alert("Iltimos, email kiriting"); return false; }
+                if (!value.includes('@')) { alert("Noto'g'ri email formati"); return false; }
+            }
+            if (currentStep === 2) {
+                if (!value) { alert("Iltimos, parol kiriting"); return false; }
+            }
+            return true;
+        }
+
+        function nextStep() {
+            if (!validateStep()) return;
+
+            if (currentStep === totalSteps) {
+                submitForm();
+                return;
+            }
+
+            currentStep++;
+            updateUI();
+
+            // Focus on password field
+            if (currentStep === 2) {
+                setTimeout(() => document.getElementById('password').focus(), 100);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        async function submitForm() {
+            const btn = document.getElementById('continueBtn');
+            btn.disabled = true;
+            btn.textContent = "Yuklanmoqda...";
+
+            // Trigger the auth.js login
+            const event = new CustomEvent('multiStepLogin', {
+                detail: {
+                    email: document.getElementById('email').value,
+                    password: document.getElementById('password').value
+                }
+            });
+            document.dispatchEvent(event);
+        }
+
+        // Enter key to continue
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') nextStep();
+        });
     </script>
     <script type="module" src="../assets/js/auth.js"></script>
 </body>
