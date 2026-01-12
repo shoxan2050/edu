@@ -220,94 +220,78 @@
     </script>
 
     <!-- Settings Modal -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+    <div id="settingsModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
             <div
-                class="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 text-white flex justify-between items-center">
-                <h2 class="text-xl font-bold flex items-center gap-2">⚙️ Sozlamalar</h2>
-                <button onclick="closeSettingsModal()"
-                    class="text-white/80 hover:text-white text-2xl hover:rotate-90 transition-transform">✕</button>
+                class="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 text-white flex justify-between items-center">
+                <h2 class="text-2xl font-bold">⚙️ Sozlamalar</h2>
+                <button onclick="closeSettingsModal()" class="text-white/80 hover:text-white text-2xl">✕</button>
             </div>
-            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div class="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
                 <!-- Theme Section -->
                 <div>
-                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">🎨 Mavzu</h3>
-                    <div class="grid grid-cols-5 gap-2">
-                        <!-- Light -->
+                    <h3 class="font-bold text-gray-900 mb-3">🎨 Mavzu</h3>
+                    <div class="grid grid-cols-5 gap-3">
                         <button onclick="setTheme('light')"
-                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-amber-400 transition"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition"
                             data-theme="light">
-                            <div
-                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 flex items-center justify-center text-2xl shadow-md">
-                                ☀️
+                            <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-xl">☀️
                             </div>
-                            <span class="text-xs text-gray-600 font-medium">Yorug'</span>
+                            <span class="text-xs text-gray-500">Yorug'</span>
                         </button>
-                        <!-- Dark -->
                         <button onclick="setTheme('dark')"
-                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-slate-500 transition"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition"
                             data-theme="dark">
-                            <div
-                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-2xl shadow-md">
-                                🌙
+                            <div class="w-12 h-12 rounded-xl bg-gray-800 flex items-center justify-center text-xl">🌙
                             </div>
-                            <span class="text-xs text-gray-600 font-medium">Qorong'i</span>
+                            <span class="text-xs text-gray-500">Qorong'i</span>
                         </button>
-                        <!-- Neon -->
-                        <button onclick="setTheme('neon')"
+                        <button onclick="setTheme('neon-purple')"
                             class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-purple-500 transition"
-                            data-theme="neon">
+                            data-theme="neon-purple">
                             <div
-                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-2xl shadow-md shadow-purple-500/30">
-                                💜
-                            </div>
-                            <span class="text-xs text-gray-600 font-medium">Neon</span>
+                                class="w-12 h-12 rounded-xl bg-purple-900 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+                                💜</div>
+                            <span class="text-xs text-purple-400">Neon</span>
                         </button>
-                        <!-- Matrix -->
-                        <button onclick="setTheme('matrix')"
+                        <button onclick="setTheme('neon-green')"
                             class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-green-500 transition"
-                            data-theme="matrix">
+                            data-theme="neon-green">
                             <div
-                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-600 to-emerald-800 flex items-center justify-center text-2xl shadow-md shadow-green-500/30">
-                                💚
-                            </div>
-                            <span class="text-xs text-gray-600 font-medium">Matrix</span>
+                                class="w-12 h-12 rounded-xl bg-green-900 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(34,197,94,0.5)]">
+                                💚</div>
+                            <span class="text-xs text-green-400">Matrix</span>
                         </button>
-                        <!-- Cyber -->
-                        <button onclick="setTheme('cyber')"
-                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-cyan-500 transition"
-                            data-theme="cyber">
+                        <button onclick="setTheme('neon-blue')"
+                            class="theme-btn flex flex-col items-center gap-2 p-3 rounded-2xl border-2 border-transparent hover:border-blue-500 transition"
+                            data-theme="neon-blue">
                             <div
-                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-700 flex items-center justify-center text-2xl shadow-md shadow-cyan-500/30">
-                                💙
-                            </div>
-                            <span class="text-xs text-gray-600 font-medium">Cyber</span>
+                                class="w-12 h-12 rounded-xl bg-blue-900 flex items-center justify-center text-xl shadow-[0_0_15px_rgba(14,165,233,0.5)]">
+                                💙</div>
+                            <span class="text-xs text-blue-400">Cyber</span>
                         </button>
                     </div>
                 </div>
 
                 <!-- Password Section -->
-                <div>
-                    <h3 class="font-bold text-gray-900 mb-4 flex items-center gap-2">🔒 Parolni o'zgartirish</h3>
+                <div class="border-t border-gray-100 pt-6">
+                    <h3 class="font-bold text-gray-900 mb-3">🔐 Parolni o'zgartirish</h3>
                     <div class="space-y-3">
                         <input type="password" id="currentPassword" placeholder="Hozirgi parol"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none transition">
+                            class="w-full p-4 border border-gray-200 rounded-xl">
                         <input type="password" id="newPassword" placeholder="Yangi parol"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none transition">
+                            class="w-full p-4 border border-gray-200 rounded-xl">
                         <input type="password" id="confirmPassword" placeholder="Yangi parolni tasdiqlang"
-                            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-indigo-500 outline-none transition">
+                            class="w-full p-4 border border-gray-200 rounded-xl">
                         <button onclick="changePassword()"
-                            class="w-full py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white rounded-xl font-bold hover:opacity-90 transition shadow-lg">
-                            Parolni yangilash
-                        </button>
+                            class="w-full py-3 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600">Parolni
+                            yangilash</button>
                     </div>
                 </div>
-
-                <!-- Close Button -->
+            </div>
+            <div class="p-6 border-t border-gray-100 flex justify-end">
                 <button onclick="closeSettingsModal()"
-                    class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl font-bold text-lg hover:opacity-90 transition shadow-lg">
-                    Yopish
-                </button>
+                    class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700">Yopish</button>
             </div>
         </div>
     </div>
