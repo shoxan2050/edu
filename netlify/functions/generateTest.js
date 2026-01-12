@@ -14,13 +14,26 @@ export async function handler(event) {
         try {
             admin = await import("firebase-admin");
             if (admin.apps.length === 0) {
+                // Check if FIREBASE_SERVICE_ACCOUNT exists
+                if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+                    return { statusCode: 500, body: JSON.stringify({ error: "FIREBASE_SERVICE_ACCOUNT not set" }) };
+                }
+
+                let serviceAccount;
+                try {
+                    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+                } catch (jsonErr) {
+                    return { statusCode: 500, body: JSON.stringify({ error: "FIREBASE_SERVICE_ACCOUNT JSON parse error: " + jsonErr.message }) };
+                }
+
                 admin.initializeApp({
-                    credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT))
+                    credential: admin.credential.cert(serviceAccount),
+                    databaseURL: serviceAccount.databaseURL || `https://${serviceAccount.project_id}-default-rtdb.firebaseio.com`
                 });
             }
         } catch (e) {
             console.error("Firebase Admin Error:", e);
-            return { statusCode: 500, body: JSON.stringify({ error: "Server Configuration Error" }) };
+            return { statusCode: 500, body: JSON.stringify({ error: "Firebase Error: " + e.message }) };
         }
 
         const decodedToken = await admin.auth().verifyIdToken(token);
