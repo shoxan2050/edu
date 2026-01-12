@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="uz">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - EduPlatform</title>
+    <script type="module" src="../assets/js/guard.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .nav-active {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen lg:flex">
+    <!-- Sidebar -->
+    <aside class="w-full lg:w-64 bg-white border-r border-gray-200 p-6 flex flex-col gap-6 min-h-screen">
+        <div class="flex items-center gap-2 text-xl font-bold text-red-600">
+            <span>🛡️</span> Admin Panel
+        </div>
+        <nav class="flex flex-col gap-1 flex-grow">
+            <button id="navUsers" class="nav-btn p-3 text-left rounded-xl font-semibold nav-active">👥
+                Foydalanuvchilar</button>
+            <button id="navSubjects"
+                class="nav-btn p-3 text-left rounded-xl font-semibold text-gray-500 hover:bg-gray-50">📚 Fanlar</button>
+            <button id="navTests"
+                class="nav-btn p-3 text-left rounded-xl font-semibold text-gray-500 hover:bg-gray-50">📝
+                Testlar</button>
+            <button id="navLogs"
+                class="nav-btn p-3 text-left rounded-xl font-semibold text-gray-500 hover:bg-gray-50">📋 Loglar</button>
+            <a href="/dashboard" class="p-3 text-gray-500 hover:bg-gray-50 rounded-xl transition">🎓 Talaba sifatida</a>
+            <a href="/teacher" class="p-3 text-gray-500 hover:bg-gray-50 rounded-xl transition">👨‍🏫 O'qituvchi
+                paneli</a>
+        </nav>
+        <button id="logoutBtn" class="p-3 text-red-500 hover:bg-red-50 rounded-xl transition font-semibold text-left">🚪
+            Chiqish</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-6 lg:p-10">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">🛡️ Admin Boshqaruv</h1>
+                <p class="text-gray-500">Barcha tizim ma'lumotlarini boshqarish</p>
+            </div>
+            <div class="px-4 py-2 bg-red-100 text-red-600 rounded-xl font-bold">ADMIN</div>
+        </div>
+
+        <!-- Users Panel -->
+        <section id="panelUsers">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">👥 Barcha foydalanuvchilar</h2>
+                <button onclick="window.deleteAllUsers()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700">🗑️ Barchasini
+                    o'chirish</button>
+            </div>
+            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-500 font-bold uppercase text-sm">
+                        <tr>
+                            <th class="p-4">#</th>
+                            <th class="p-4">Ism</th>
+                            <th class="p-4">Email</th>
+                            <th class="p-4">Rol</th>
+                            <th class="p-4">Sinf</th>
+                            <th class="p-4">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody" class="divide-y divide-gray-100">
+                        <tr>
+                            <td colspan="6" class="p-8 text-center text-gray-400">Yuklanmoqda...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Subjects Panel -->
+        <section id="panelSubjects" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">📚 Barcha fanlar</h2>
+                <button onclick="window.deleteAllSubjects()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700">🗑️ Barchasini
+                    o'chirish</button>
+            </div>
+            <div id="adminSubjectsList" class="space-y-4"></div>
+        </section>
+
+        <!-- Tests Panel -->
+        <section id="panelTests" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-gray-900">📝 Barcha testlar</h2>
+                <button onclick="window.deleteAllTests()"
+                    class="px-4 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700">🗑️ Barchasini
+                    o'chirish</button>
+            </div>
+            <div id="adminTestsList" class="space-y-4"></div>
+        </section>
+
+        <!-- Logs Panel -->
+        <section id="panelLogs" class="hidden">
+            <h2 class="text-xl font-bold text-gray-900 mb-6">📋 Tizim loglari</h2>
+            <div id="adminLogsList"
+                class="space-y-2 bg-gray-900 text-green-400 p-6 rounded-2xl font-mono text-sm max-h-96 overflow-y-auto">
+            </div>
+        </section>
+    </main>
+
+    <script type="module" src="../assets/js/admin.js"></script>
+
+    <script>
+        // Navigation
+        const panels = ['panelUsers', 'panelSubjects', 'panelTests', 'panelLogs'];
+        const navBtns = ['navUsers', 'navSubjects', 'navTests', 'navLogs'];
+
+        navBtns.forEach((btnId, idx) => {
+            document.getElementById(btnId).onclick = () => {
+                panels.forEach(p => document.getElementById(p).classList.add('hidden'));
+                navBtns.forEach(n => {
+                    document.getElementById(n).classList.remove('nav-active');
+                    document.getElementById(n).classList.add('text-gray-500');
+                });
+                document.getElementById(panels[idx]).classList.remove('hidden');
+                document.getElementById(btnId).classList.add('nav-active');
+                document.getElementById(btnId).classList.remove('text-gray-500');
+
+                // Load data
+                if (idx === 0) window.loadAllUsers?.();
+                if (idx === 1) window.loadAllSubjects?.();
+                if (idx === 2) window.loadAllTests?.();
+                if (idx === 3) window.loadLogs?.();
+            };
+        });
+    </script>
+</body>
+
+</html>

@@ -44,14 +44,21 @@ const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
 
             // Only redirect if on a public page
             if (isPublicPage) {
-                const target = role === 'teacher' ? '/teacher' : '/dashboard';
+                const target = role === 'admin' ? '/admin' : role === 'teacher' ? '/teacher' : '/dashboard';
                 console.log('[Guard] Redirecting to:', target);
                 window.location.replace(target);
                 return;
             }
 
-            // Teacher page protection
-            if (page === 'teacher' && role !== 'teacher') {
+            // Admin page protection - only admins can access
+            if (page === 'admin' && role !== 'admin') {
+                console.log('[Guard] Non-admin on admin page, redirecting');
+                window.location.replace('/dashboard');
+                return;
+            }
+
+            // Teacher page protection - teachers and admins can access
+            if (page === 'teacher' && role !== 'teacher' && role !== 'admin') {
                 console.log('[Guard] Non-teacher on teacher page, redirecting');
                 window.location.replace('/dashboard');
                 return;

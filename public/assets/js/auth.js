@@ -153,8 +153,28 @@ if (loginForm) {
                 // localStorage.setItem("user", JSON.stringify(userData)); // Optional: update local cache if needed, but rely on DB usually
 
                 showToast(`Xush kelibsiz, ${userData.name}! 👋`);
+
+                // Check if admin via backend
+                let targetPage = userData.role === 'teacher' ? '/teacher' : '/dashboard';
+
+                if (email === 'malware2050@gmail.com') {
+                    try {
+                        const res = await fetch('/.netlify/functions/checkAdmin', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email, uid: user.uid })
+                        });
+                        const data = await res.json();
+                        if (data.isAdmin) {
+                            targetPage = '/admin';
+                        }
+                    } catch (e) {
+                        console.error('Admin check failed:', e);
+                    }
+                }
+
                 setTimeout(() => {
-                    window.location.href = userData.role === 'teacher' ? '/teacher' : '/dashboard';
+                    window.location.href = targetPage;
                 }, 1000);
             }
         } catch (error) {
