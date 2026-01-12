@@ -105,6 +105,42 @@
     --glow-color: #e879f9;
 }
 
+/* Matrix Theme (Green) */
+[data-theme="matrix"] {
+    --bg-primary: #000a00;
+    --bg-secondary: #001a00;
+    --bg-accent: #003300;
+    --text-primary: #00ff00;
+    --text-secondary: #00cc00;
+    --text-accent: #00ff66;
+    --border-color: #004d00;
+    --shadow-color: rgba(0, 255, 0, 0.3);
+    --card-bg: linear-gradient(135deg, #001a00 0%, #003300 100%);
+    --sidebar-bg: linear-gradient(180deg, #000a00 0%, #002200 100%);
+    --scrollbar-track: #001a00;
+    --scrollbar-thumb: #00cc00;
+    --scrollbar-hover: #00ff00;
+    --glow-color: #00ff00;
+}
+
+/* Cyber Theme (Cyan/Blue) */
+[data-theme="cyber"] {
+    --bg-primary: #000814;
+    --bg-secondary: #001a33;
+    --bg-accent: #002b4d;
+    --text-primary: #00f5ff;
+    --text-secondary: #00c8ff;
+    --text-accent: #0099ff;
+    --border-color: #004080;
+    --shadow-color: rgba(0, 245, 255, 0.4);
+    --card-bg: linear-gradient(135deg, #001a33 0%, #002b4d 100%);
+    --sidebar-bg: linear-gradient(180deg, #000814 0%, #001f3f 100%);
+    --scrollbar-track: #001a33;
+    --scrollbar-thumb: #0099ff;
+    --scrollbar-hover: #00c8ff;
+    --glow-color: #00f5ff;
+}
+
 /* Neon Purple Theme */
 [data-theme="neon-purple"] {
     --bg-primary: #0a0a0f;
