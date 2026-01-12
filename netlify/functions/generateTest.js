@@ -60,10 +60,8 @@ export async function handler(event) {
     const MODEL = "xiaomi/mimo-v2-flash:free";
     const gradeLevel = grade || 7;
 
-    const prompt = `${topic} mavzusi bo'yicha 5 ta test savoli yarat. Har birida 4 variant va 1 to'g'ri javob.
-
-JSON format:
-{"questions":[{"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"..."}]}`;
+    const prompt = `${topic} - 5 ta test. 4 variant, 1 to'g'ri.
+JSON: {"questions":[{"question":"?","options":["A","B","C","D"],"correct":0}]}`;
 
     try {
         const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -81,7 +79,7 @@ JSON format:
                     { role: "user", content: prompt }
                 ],
                 temperature: 0.7,
-                max_tokens: 1500
+                max_tokens: 2500
             })
         });
 
