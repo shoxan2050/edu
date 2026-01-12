@@ -265,7 +265,7 @@ window.loadStudents = async function () {
             .map(([uid, u]) => ({ uid, ...u }));
 
         if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">O\'quvchilar topilmadi</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-400">O\'quvchilar topilmadi</td></tr>';
             return;
         }
 
@@ -276,7 +276,6 @@ window.loadStudents = async function () {
                     <td class="p-4 font-mono text-gray-400">${idx + 1}</td>
                     <td class="p-4 font-bold text-gray-900">${s.name || 'Noma\'lum'}</td>
                     <td class="p-4">${s.sinf || s.class || '-'}-sinf</td>
-                    <td class="p-4 text-gray-500">${s.email || '-'}</td>
                     <td class="p-4">
                         <div class="flex items-center gap-2">
                             <div class="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -290,7 +289,7 @@ window.loadStudents = async function () {
         }).join('');
     } catch (error) {
         console.error("Load students error", error);
-        tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Xatolik yuz berdi</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-500">Xatolik yuz berdi</td></tr>';
     }
 };
 

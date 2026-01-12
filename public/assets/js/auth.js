@@ -76,20 +76,19 @@ if (registerForm) {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // Get phone numbers for teachers
-            const phone1 = document.getElementById('phone1')?.value || '';
-            const phone2 = document.getElementById('phone2')?.value || '';
+            // Get phone number (for password recovery)
+            const phone = document.getElementById('phone1')?.value || '';
 
             const userData = {
                 uid: user.uid,
                 name,
-                sinf: userClass,
+                sinf: role === 'teacher' ? null : userClass, // No class for teachers
                 role,
                 email,
+                phone, // Phone for ALL users
                 streak: 0,
                 lastActive: null,
-                progress: {},
-                ...(role === 'teacher' ? { phone1, phone2 } : {})
+                progress: {}
             };
 
             await set(ref(db, 'users/' + user.uid), userData);
