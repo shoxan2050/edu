@@ -87,11 +87,61 @@ const init = async (user) => {
             });
 
             renderSubjects(filteredSubjects, userProgress);
+
+            // Load available tests for student
+            loadAvailableTests(user.uid, userClass);
         }
     } catch (error) {
         console.error("Dashboard error", error);
         showToast("Ma'lumotlarni yuklashda xatolik yuz berdi ❌", 'error');
     }
+};
+
+// Load Available Tests
+async function loadAvailableTests(uid, classNum) {
+    const container = document.getElementById('availableTests');
+    if (!container) return;
+
+    try {
+        const tests = await DbService.getTestsForStudent(uid, classNum);
+
+        if (!tests || tests.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full p-8 text-center text-gray-400 bg-white rounded-2xl border border-gray-100">
+                    <div class="text-4xl mb-2">📝</div>
+                    <p>Hozircha testlar yo'q</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = tests.map(test => `
+            <div class="p-5 bg-white rounded-2xl border border-gray-100 hover:shadow-lg transition-all duration-200">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <h4 class="font-bold text-gray-900 text-lg">${test.lessonTitle}</h4>
+                        <p class="text-sm text-gray-500">${test.subjectName}</p>
+                    </div>
+                    ${test.completed ?
+                `<span class="px-2 py-1 bg-green-100 text-green-600 rounded-lg text-xs font-bold">✅ ${test.score}%</span>` :
+                `<span class="px-2 py-1 bg-amber-100 text-amber-600 rounded-lg text-xs font-bold">📋 ${test.questions?.length || 5} savol</span>`
+            }
+                </div>
+                <button onclick="startTest('${test.subjectId}', '${test.lessonId}')" 
+                    class="w-full py-3 ${test.completed ? 'bg-gray-100 text-gray-600' : 'bg-indigo-600 text-white'} rounded-xl font-bold hover:opacity-90 transition">
+                    ${test.completed ? '🔄 Qayta topshirish' : '🚀 Testni boshlash'}
+                </button>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error("Load tests error:", error);
+        container.innerHTML = `<div class="col-span-full text-center text-red-500 p-4">Testlarni yuklashda xatolik</div>`;
+    }
+}
+
+// Start Test
+window.startTest = function (subjectId, lessonId) {
+    window.location.href = `/test?subject=${subjectId}&lesson=${lessonId}`;
 };
 
 if (window.__AUTH_USER__) {

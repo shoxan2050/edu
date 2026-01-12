@@ -99,7 +99,10 @@ async function loadTeacherSubjects() {
                         ` : ''}
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="window.openTestEditor('${id}', '${s.name}')" class="flex-grow py-3 bg-gray-50 text-gray-600 rounded-xl font-semibold hover:bg-gray-100 transition">Boshqarish</button>
+                        <button onclick="window.openTestEditor('${id}', '${s.name}')" class="flex-grow py-3 bg-gray-50 text-gray-600 rounded-xl font-semibold hover:bg-gray-100 transition">📝 Qo'lda test</button>
+                        ${!needsAI ? `
+                            <button onclick="window.viewGeneratedTests('${id}', '${s.name}')" class="px-4 bg-green-100 text-green-600 rounded-xl hover:bg-green-200 transition" title="Testlarni ko'rish">📋</button>
+                        ` : ''}
                         ${needsAI ? `
                             <button onclick="window.generateAI('${id}')" class="px-4 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition" title="AI Test Generatsiya">🪄</button>
                         ` : ''}
@@ -112,17 +115,39 @@ async function loadTeacherSubjects() {
     }
 }
 
-// --- AI Generation ---
+// --- AI Generation with Progress ---
 let isAiGenerating = false;
 
 window.generateAI = async (subjectId) => {
     if (isAiGenerating) return;
     isAiGenerating = true;
 
+    // Progress modal show
+    let progressModal = document.getElementById('aiProgressModal');
+    if (!progressModal) {
+        progressModal = document.createElement('div');
+        progressModal.id = 'aiProgressModal';
+        progressModal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4';
+        progressModal.innerHTML = `
+            <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-8 text-center">
+                <div class="text-6xl mb-4">🤖</div>
+                <h2 class="text-2xl font-bold text-gray-900 mb-2">AI Test Generatsiyasi</h2>
+                <p id="aiProgressText" class="text-gray-500 mb-6">Tayyorlanmoqda...</p>
+                <div class="w-full h-3 bg-gray-100 rounded-full overflow-hidden mb-4">
+                    <div id="aiProgressBar" class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p id="aiProgressStatus" class="text-sm text-gray-400">0 / 0</p>
+            </div>
+        `;
+        document.body.appendChild(progressModal);
+    }
+    progressModal.classList.remove('hidden');
+
     try {
         const subjectData = await DbService.getSubject(subjectId);
         if (!subjectData) {
             showToast("Fan topilmadi! ❌", 'error');
+            progressModal.classList.add('hidden');
             return;
         }
 
@@ -131,16 +156,23 @@ window.generateAI = async (subjectId) => {
 
         if (lessonsToGenerate.length === 0) {
             showToast("Barcha testlar allaqachon generatsiya qilingan! ✅", 'success');
+            progressModal.classList.add('hidden');
             return;
         }
 
-        showToast(`${lessonsToGenerate.length} ta test generatsiyasi boshlandi... 🤖`, 'success');
-
+        const total = Math.min(lessonsToGenerate.length, 10); // Max 10 at a time
         let successCount = 0;
         let failCount = 0;
 
-        for (const key of lessonsToGenerate.slice(0, 5)) {
+        for (let i = 0; i < total; i++) {
+            const key = lessonsToGenerate[i];
             const lesson = lessons[key];
+
+            // Update progress UI
+            document.getElementById('aiProgressText').textContent = `"${lesson.title}" uchun test yaratilmoqda...`;
+            document.getElementById('aiProgressBar').style.width = `${((i + 1) / total) * 100}%`;
+            document.getElementById('aiProgressStatus').textContent = `${i + 1} / ${total}`;
+
             try {
                 const token = await auth.currentUser.getIdToken();
                 const testData = await AiService.generateTest(lesson.title, subjectId, key, token);
@@ -152,16 +184,67 @@ window.generateAI = async (subjectId) => {
             }
         }
 
+        progressModal.classList.add('hidden');
+
         if (successCount > 0) showToast(`${successCount} ta test generatsiya qilindi! 🎉`, 'success');
         if (failCount > 0) showToast(`${failCount} ta testda xatolik. ❌`, 'error');
         loadTeacherSubjects();
     } catch (error) {
         console.error("AI Generation Error:", error);
         showToast("Xatolik yuz berdi! ❌", 'error');
+        progressModal.classList.add('hidden');
     } finally {
         isAiGenerating = false;
     }
 };
+
+// --- View Generated Tests ---
+window.viewGeneratedTests = async (subjectId, subjectName) => {
+    const tests = await DbService.getAllTests();
+    const subjectTests = tests[subjectId] || {};
+    const testList = Object.entries(subjectTests);
+
+    if (testList.length === 0) {
+        showToast("Bu fanda hali testlar yo'q! 📝", 'error');
+        return;
+    }
+
+    let modal = document.getElementById('viewTestsModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'viewTestsModal';
+        modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl my-8 max-h-[80vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">📋 Generatsiya qilingan testlar</h2>
+                    <p class="text-sm text-gray-500">${subjectName} - ${testList.length} ta test</p>
+                </div>
+                <button onclick="document.getElementById('viewTestsModal').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 text-2xl">✕</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow space-y-4">
+                ${testList.map(([lessonId, test]) => `
+                    <div class="p-4 bg-gray-50 rounded-2xl">
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="font-bold text-gray-900">${test.topic || lessonId}</h4>
+                            <span class="text-sm text-gray-400">${test.questions?.length || 0} savol</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="window.editTest('${subjectId}', '${lessonId}')" class="px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-sm font-medium hover:bg-indigo-200">✏️ Tahrirlash</button>
+                            <button onclick="window.previewTest('${subjectId}', '${lessonId}')" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200">👁️ Ko'rish</button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+};
+
 
 // --- STUDENTS STATISTICS ---
 window.loadStudents = async function () {
