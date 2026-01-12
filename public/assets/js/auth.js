@@ -158,23 +158,12 @@ if (loginForm) {
 
                 showToast(`Xush kelibsiz, ${userData.name}! 👋`);
 
-                // Check if admin via backend
-                let targetPage = userData.role === 'teacher' ? '/teacher' : '/dashboard';
-
-                if (email === 'malware2050@gmail.com') {
-                    try {
-                        const res = await fetch('/.netlify/functions/checkAdmin', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email, uid: user.uid })
-                        });
-                        const data = await res.json();
-                        if (data.isAdmin) {
-                            targetPage = '/admin';
-                        }
-                    } catch (e) {
-                        console.error('Admin check failed:', e);
-                    }
+                // Redirect based on role from Firebase
+                let targetPage = '/dashboard';
+                if (userData.role === 'admin') {
+                    targetPage = '/admin';
+                } else if (userData.role === 'teacher') {
+                    targetPage = '/teacher';
                 }
 
                 setTimeout(() => {
