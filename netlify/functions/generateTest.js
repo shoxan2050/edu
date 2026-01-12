@@ -98,21 +98,70 @@ JSON format:
             return { statusCode: 500, body: JSON.stringify({ error: "AI bo'sh javob berdi" }) };
         }
 
-        // JSON ni tozalash
-        text = text.replace(/```json|```/g, '').trim();
+        // JSON ni tozalash (har xil formatlarni qo'llab-quvvatlash)
+        text = text.trim();
 
-        // JSON ni ajratib olish
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-            text = jsonMatch[0];
+        // Markdown code block olib tashlash
+        text = text.replace(/^```json?\s*/i, '').replace(/\s*```$/i, '');
+        text = text.trim();
+
+        // Agar text { bilan boshlanmasa, { topish
+        if (!text.startsWith('{')) {
+            const startIdx = text.indexOf('{');
+            if (startIdx !== -1) {
+                text = text.substring(startIdx);
+            }
+        }
+
+        // Oxirgi } ni topish
+        const lastBrace = text.lastIndexOf('}');
+        if (lastBrace !== -1) {
+            text = text.substring(0, lastBrace + 1);
+        }
+
+        console.log("AI raw response length:", text.length);
+
+        // JSON ni ta'mirlash (AI xatolarini tuzatish)
+        function repairJSON(str) {
+            // Oxirgi yopilmagan stringni yopish
+            let fixed = str;
+
+            // Oxirgi ] va } ni topish
+            const lastBracket = fixed.lastIndexOf(']');
+            const lastBrace = fixed.lastIndexOf('}');
+
+            if (lastBracket > 0 && lastBrace > lastBracket) {
+                // ] dan oldin yopilmagan " bormi?
+                const beforeBracket = fixed.substring(0, lastBracket);
+                const lastQuote = beforeBracket.lastIndexOf('"');
+                const afterLastQuote = beforeBracket.substring(lastQuote + 1);
+
+                // Agar oxirgi " dan keyin yana " yo'q bo'lsa, qo'shish
+                if (!afterLastQuote.includes('"') && afterLastQuote.trim().length > 0) {
+                    fixed = beforeBracket + '"' + fixed.substring(lastBracket);
+                }
+            }
+
+            // Trailing comma olib tashlash
+            fixed = fixed.replace(/,\s*]/g, ']').replace(/,\s*}/g, '}');
+
+            return fixed;
         }
 
         let json;
         try {
             json = JSON.parse(text);
         } catch (parseErr) {
-            console.error("JSON parse error:", text);
-            return { statusCode: 500, body: JSON.stringify({ error: "AI javobini o'qib bo'lmadi" }) };
+            // Birinchi urinish muvaffaqiyatsiz - ta'mirlashga harakat
+            console.log("First parse failed, trying to repair...");
+            try {
+                const repaired = repairJSON(text);
+                json = JSON.parse(repaired);
+                console.log("JSON repaired successfully!");
+            } catch (repairErr) {
+                console.error("JSON parse error. Raw text:", text.substring(0, 300));
+                return { statusCode: 500, body: JSON.stringify({ error: "AI javobini o'qib bo'lmadi. Qayta urinib ko'ring." }) };
+            }
         }
 
         if (!json.questions || !Array.isArray(json.questions) || json.questions.length === 0) {
