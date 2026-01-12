@@ -14,10 +14,41 @@
 
         .step {
             display: none;
+            opacity: 0;
+            transform: translateX(30px);
         }
 
         .step.active {
             display: block;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        .step.exit {
+            animation: slideOut 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
         }
 
         .floating-label {
@@ -41,27 +72,18 @@
     </style>
 </head>
 
-<body
-    class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
+<body class="bg-white min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-md">
         <!-- Card -->
-        <div class="bg-white rounded-[2rem] shadow-2xl overflow-hidden">
+        <div class="bg-white rounded-[2rem] overflow-hidden">
             <!-- Header -->
-            <div class="p-8 pb-4 text-center">
+            <div class="p-8 pb-6 text-center">
                 <h1 id="stepTitle" class="text-2xl font-bold text-gray-900">Hisob yarating</h1>
                 <p id="stepDesc" class="text-gray-500 mt-1 text-sm">Ismingizni kiriting</p>
             </div>
 
-            <!-- Progress bar -->
-            <div class="px-8">
-                <div class="h-1 bg-gray-100 rounded-full overflow-hidden">
-                    <div id="progressBar" class="h-full bg-indigo-600 transition-all duration-300" style="width: 14%">
-                    </div>
-                </div>
-            </div>
-
             <!-- Form Steps -->
-            <div class="p-8 pt-6">
+            <div class="px-8 pb-8">
                 <!-- Step 1: Name -->
                 <div class="step active" data-step="1">
                     <div class="relative mb-4">
@@ -160,8 +182,8 @@
         </div>
 
         <!-- Login Link -->
-        <p class="text-center mt-6 text-white/80">
-            Hisobingiz bormi? <a href="/login" class="text-white font-semibold hover:underline">Kirish</a>
+        <p class="text-center mt-6 text-gray-500">
+            Hisobingiz bormi? <a href="/login" class="text-indigo-600 font-semibold hover:underline">Kirish</a>
         </p>
     </div>
 
@@ -181,13 +203,18 @@
             8: { title: "Maktab", desc: "Maktabingizni tanlang" }
         };
 
-        function updateUI() {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+        function updateUI(direction = 'next') {
+            const currentEl = document.querySelector('.step.active');
+            const nextEl = document.querySelector(`[data-step="${currentStep}"]`);
+
+            if (currentEl && currentEl !== nextEl) {
+                currentEl.classList.remove('active');
+            }
+
+            nextEl.classList.add('active');
 
             document.getElementById('stepTitle').textContent = stepInfo[currentStep].title;
             document.getElementById('stepDesc').textContent = stepInfo[currentStep].desc;
-            document.getElementById('progressBar').style.width = `${(currentStep / totalSteps) * 100}%`;
 
             document.getElementById('backBtn').classList.toggle('hidden', currentStep === 1);
             document.getElementById('continueBtn').textContent = currentStep === totalSteps ? "Ro'yxatdan o'tish" : "Davom etish";
@@ -241,13 +268,13 @@
             }
 
             currentStep++;
-            updateUI();
+            updateUI('next');
         }
 
         function prevStep() {
             if (currentStep > 1) {
                 currentStep--;
-                updateUI();
+                updateUI('prev');
             }
         }
 
@@ -256,7 +283,6 @@
             btn.disabled = true;
             btn.textContent = "Yuklanmoqda...";
 
-            // Trigger the auth.js registration
             const event = new CustomEvent('multiStepRegister', {
                 detail: {
                     name: document.getElementById('name').value,
@@ -330,7 +356,6 @@
             });
         }
 
-        // Enter key to continue
         document.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') nextStep();
         });
