@@ -72,16 +72,25 @@ async function loadTeacherSubjects() {
 
     try {
         const subjects = await DbService.getAllSubjects() || {};
+        const allTests = await DbService.getAllTests() || {}; // Get all tests
+
         if (!subjects || Object.keys(subjects).length === 0) {
             list.innerHTML = `<div class="col-span-full py-10 text-center text-gray-400">Hali fanlar qo'shilmagan.</div>`;
             return;
         }
+
         list.innerHTML = Object.keys(subjects).map(id => {
             const s = subjects[id];
             const lessons = s.lessons || {};
             const lessonsCount = Object.keys(lessons).length;
-            // Check if ANY lesson needs AI test generation (testGenerated !== true)
-            const needsAI = lessonsCount > 0 && Object.values(lessons).some(l => l.testGenerated !== true);
+
+            // Check if tests exist for this subject in tests/ node
+            const subjectTests = allTests[id] || {};
+            const testsCount = Object.keys(subjectTests).length;
+            const hasTests = testsCount > 0;
+
+            // needsAI = has lessons but no tests generated yet
+            const needsAI = lessonsCount > 0 && !hasTests;
 
             return `
                 <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between">
@@ -97,11 +106,15 @@ async function loadTeacherSubjects() {
                             <div class="mb-4 p-3 bg-amber-50 rounded-xl border border-amber-100 flex items-center gap-2 text-sm text-amber-700">
                                 <span>🤖</span> Testlar generatsiya qilinmagan
                             </div>
-                        ` : ''}
+                        ` : `
+                            <div class="mb-4 p-3 bg-green-50 rounded-xl border border-green-100 flex items-center gap-2 text-sm text-green-700">
+                                <span>✅</span> ${testsCount} ta test mavjud
+                            </div>
+                        `}
                     </div>
                     <div class="flex gap-2">
                         <button onclick="window.openTestEditor('${id}', '${s.name}')" class="flex-grow py-3 bg-gray-50 text-gray-600 rounded-xl font-semibold hover:bg-gray-100 transition">📝 Qo'lda test</button>
-                        ${!needsAI ? `
+                        ${hasTests ? `
                             <button onclick="window.viewGeneratedTests('${id}', '${s.name}')" class="px-4 bg-green-100 text-green-600 rounded-xl hover:bg-green-200 transition" title="Testlarni ko'rish">📋</button>
                         ` : ''}
                         ${needsAI ? `
