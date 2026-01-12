@@ -58,6 +58,31 @@
                 </select>
             </div>
 
+            <!-- School Selection - Cascading Dropdowns -->
+            <div id="schoolSection">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">🏫 Maktabni tanlang</label>
+
+                <!-- Viloyat -->
+                <select id="viloyat" onchange="loadTumanlar()"
+                    class="w-full px-4 py-3 mb-2 rounded-xl border border-gray-200 outline-none transition cursor-pointer">
+                    <option value="">Viloyatni tanlang...</option>
+                </select>
+
+                <!-- Tuman -->
+                <select id="tuman" onchange="loadMaktablar()" disabled
+                    class="w-full px-4 py-3 mb-2 rounded-xl border border-gray-200 outline-none transition cursor-pointer disabled:bg-gray-100">
+                    <option value="">Tumanni tanlang...</option>
+                </select>
+
+                <!-- Maktab -->
+                <select id="maktab" disabled
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none transition cursor-pointer disabled:bg-gray-100">
+                    <option value="">Maktabni tanlang...</option>
+                </select>
+
+                <p class="text-xs text-gray-400 mt-1">Maktab raqami dashboard da ko'rinadi</p>
+            </div>
+
             <!-- Phone field - for ALL users (password recovery) -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">📱 Telefon raqam</label>
@@ -100,16 +125,107 @@
     </div>
 
     <script>
+        let maktablarData = [];
+
+        // Load maktablar data on page load
+        async function loadMaktablarData() {
+            try {
+                const response = await fetch('/assets/data/maktablar.json');
+                maktablarData = await response.json();
+                loadViloyatlar();
+            } catch (error) {
+                console.error('Maktablar yuklanmadi:', error);
+            }
+        }
+
+        // Populate viloyatlar dropdown
+        function loadViloyatlar() {
+            const viloyatSelect = document.getElementById('viloyat');
+            const uniqueViloyatlar = [...new Set(maktablarData.map(m => m.viloyat))].sort();
+
+            viloyatSelect.innerHTML = '<option value="">Viloyatni tanlang...</option>';
+            uniqueViloyatlar.forEach(v => {
+                viloyatSelect.innerHTML += `<option value="${v}">${v}</option>`;
+            });
+        }
+
+        // Populate tumanlar based on selected viloyat
+        function loadTumanlar() {
+            const viloyat = document.getElementById('viloyat').value;
+            const tumanSelect = document.getElementById('tuman');
+            const maktabSelect = document.getElementById('maktab');
+
+            // Reset child selects
+            tumanSelect.innerHTML = '<option value="">Tumanni tanlang...</option>';
+            maktabSelect.innerHTML = '<option value="">Maktabni tanlang...</option>';
+            maktabSelect.disabled = true;
+
+            if (!viloyat) {
+                tumanSelect.disabled = true;
+                return;
+            }
+
+            // Get unique tumanlar for selected viloyat
+            const tumanlar = [...new Set(
+                maktablarData
+                    .filter(m => m.viloyat === viloyat)
+                    .map(m => m.tuman)
+            )].sort();
+
+            tumanlar.forEach(t => {
+                tumanSelect.innerHTML += `<option value="${t}">${t}</option>`;
+            });
+
+            tumanSelect.disabled = false;
+        }
+
+        // Populate maktablar based on selected tuman
+        function loadMaktablar() {
+            const viloyat = document.getElementById('viloyat').value;
+            const tuman = document.getElementById('tuman').value;
+            const maktabSelect = document.getElementById('maktab');
+
+            maktabSelect.innerHTML = '<option value="">Maktabni tanlang...</option>';
+
+            if (!tuman) {
+                maktabSelect.disabled = true;
+                return;
+            }
+
+            // Get maktablar for selected viloyat and tuman
+            const maktablar = maktablarData
+                .filter(m => m.viloyat === viloyat && m.tuman === tuman)
+                .map(m => m.maktab)
+                .sort((a, b) => {
+                    // Sort by number if starts with number
+                    const aNum = parseInt(a.match(/^\d+/)?.[0]) || 999;
+                    const bNum = parseInt(b.match(/^\d+/)?.[0]) || 999;
+                    return aNum - bNum || a.localeCompare(b);
+                });
+
+            maktablar.forEach(m => {
+                maktabSelect.innerHTML += `<option value="${m}">${m}</option>`;
+            });
+
+            maktabSelect.disabled = false;
+        }
+
         function toggleFieldsByRole() {
             const role = document.getElementById('role').value;
             const classField = document.getElementById('classField');
+            const schoolSection = document.getElementById('schoolSection');
 
             if (role === 'teacher') {
                 classField.classList.add('hidden');
+                schoolSection.classList.add('hidden');
             } else {
                 classField.classList.remove('hidden');
+                schoolSection.classList.remove('hidden');
             }
         }
+
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadMaktablarData);
     </script>
     <script type="module" src="../assets/js/auth.js"></script>
 </body>

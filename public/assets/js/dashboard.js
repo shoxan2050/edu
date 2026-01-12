@@ -47,6 +47,16 @@ const init = async (user) => {
                 document.getElementById('profileTeacher')?.classList.remove('hidden');
             }
 
+            // Show school info if user has selected a school
+            if (userData.maktab) {
+                const schoolInfo = document.getElementById('schoolInfo');
+                const schoolName = document.getElementById('schoolName');
+                if (schoolInfo && schoolName) {
+                    schoolName.textContent = `${userData.maktab} (${userData.tuman || ''})`;
+                    schoolInfo.classList.remove('hidden');
+                }
+            }
+
             const userClass = parseInt(userData.sinf) || 0;
             const subjects = await DbService.getSubjectsByClass(userClass);
             const userProgress = userData.progress || {};

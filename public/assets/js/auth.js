@@ -79,6 +79,11 @@ if (registerForm) {
             // Get phone number (for password recovery)
             const phone = document.getElementById('phone1')?.value || '';
 
+            // Get school info (for students)
+            const viloyat = document.getElementById('viloyat')?.value || null;
+            const tuman = document.getElementById('tuman')?.value || null;
+            const maktab = document.getElementById('maktab')?.value || null;
+
             const userData = {
                 uid: user.uid,
                 name,
@@ -86,6 +91,9 @@ if (registerForm) {
                 role,
                 email,
                 phone, // Phone for ALL users
+                viloyat: role === 'teacher' ? null : viloyat,
+                tuman: role === 'teacher' ? null : tuman,
+                maktab: role === 'teacher' ? null : maktab,
                 streak: 0,
                 lastActive: null,
                 progress: {}
