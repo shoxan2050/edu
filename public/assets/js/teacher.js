@@ -129,6 +129,78 @@ async function loadTeacherSubjects() {
     }
 }
 
+// --- Auto Background Test Generation ---
+let isAutoGenerating = false;
+
+async function autoGenerateTestsInBackground() {
+    if (isAutoGenerating || isAiGenerating) return;
+
+    try {
+        const subjects = await DbService.getAllSubjects() || {};
+        const allTests = await DbService.getAllTests() || {};
+
+        // Find all lessons that need tests
+        const lessonsToGenerate = [];
+
+        for (const [subjectId, subject] of Object.entries(subjects)) {
+            const lessons = subject.lessons || {};
+            const subjectTests = allTests[subjectId] || {};
+
+            for (const [lessonId, lesson] of Object.entries(lessons)) {
+                // If no test exists for this lesson
+                if (!subjectTests[lessonId]) {
+                    lessonsToGenerate.push({
+                        subjectId,
+                        lessonId,
+                        title: lesson.title
+                    });
+                }
+            }
+        }
+
+        if (lessonsToGenerate.length === 0) return;
+
+        isAutoGenerating = true;
+        showToast(`🤖 Test generatsiya boshlandi (${lessonsToGenerate.length} ta)`, 'info');
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const item of lessonsToGenerate) {
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const testData = await AiService.generateTest(item.title, item.subjectId, item.lessonId, token);
+                await DbService.saveTest(item.subjectId, item.lessonId, testData);
+                successCount++;
+            } catch (err) {
+                console.error(`Auto-generate failed for ${item.title}:`, err);
+                failCount++;
+            }
+        }
+
+        isAutoGenerating = false;
+
+        if (successCount > 0) {
+            showToast(`✅ Test generatsiya tugadi! (${successCount} ta)`, 'success');
+            loadTeacherSubjects(); // Refresh the list
+        }
+        if (failCount > 0) {
+            showToast(`⚠️ ${failCount} ta testda xatolik`, 'error');
+        }
+
+    } catch (error) {
+        console.error("Auto generate error:", error);
+        isAutoGenerating = false;
+    }
+}
+
+// Start auto-generation after 2 seconds delay (let page fully load)
+setTimeout(() => {
+    if (auth.currentUser) {
+        autoGenerateTestsInBackground();
+    }
+}, 2000);
+
 // --- AI Generation with Progress ---
 let isAiGenerating = false;
 
