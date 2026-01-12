@@ -233,7 +233,7 @@ function showSkippedQuestions() {
     }
 }
 
-// Submit button
+// Submit button with Duolingo-style feedback
 const submitBtn = document.getElementById('submitBtn');
 if (submitBtn) {
     submitBtn.onclick = () => {
@@ -242,19 +242,84 @@ if (submitBtn) {
         userAnswers[currentIdx] = selectedOpt;
         submitBtn.disabled = true;
 
-        // Visual feedback
-        const selectedBtn = document.querySelector(`.option-btn[data-index="${selectedOpt}"]`);
-        if (selectedBtn) {
-            selectedBtn.classList.add('bg-indigo-100', 'border-indigo-500');
-        }
+        const q = questions[currentIdx];
+        const isCorrect = selectedOpt === q.correct;
 
+        // Disable all option buttons
+        document.querySelectorAll('.option-btn').forEach((btn, i) => {
+            btn.classList.add('pointer-events-none');
+
+            // Show correct answer in green
+            if (i === q.correct) {
+                btn.classList.remove('border-gray-100', 'bg-white');
+                btn.classList.add('border-emerald-500', 'bg-emerald-50', 'text-emerald-800');
+                btn.querySelector('span').classList.remove('bg-gray-100', 'text-gray-400');
+                btn.querySelector('span').classList.add('bg-emerald-500', 'text-white');
+            }
+
+            // Show wrong selected answer in red
+            if (i === selectedOpt && !isCorrect) {
+                btn.classList.remove('border-gray-100', 'bg-white', 'border-indigo-600', 'bg-indigo-50');
+                btn.classList.add('border-red-500', 'bg-red-50', 'text-red-800');
+                btn.querySelector('span').classList.remove('bg-gray-100', 'text-gray-400');
+                btn.querySelector('span').classList.add('bg-red-500', 'text-white');
+            }
+        });
+
+        // Create feedback panel (Duolingo style)
+        const feedbackPanel = document.createElement('div');
+        feedbackPanel.id = 'feedbackPanel';
+        feedbackPanel.className = `fixed bottom-0 left-0 right-0 p-6 z-50 transform transition-transform duration-300 ${isCorrect
+                ? 'bg-emerald-500 text-white'
+                : 'bg-red-500 text-white'
+            }`;
+
+        const explanation = q.explanation || (isCorrect
+            ? "Ajoyib! To'g'ri javob!"
+            : `To'g'ri javob: ${q.options[q.correct]}`);
+
+        feedbackPanel.innerHTML = `
+            <div class="max-w-2xl mx-auto">
+                <div class="flex items-center gap-4 mb-3">
+                    <span class="text-4xl">${isCorrect ? '✅' : '❌'}</span>
+                    <span class="text-2xl font-bold">${isCorrect ? 'To\'g\'ri!' : 'Noto\'g\'ri!'}</span>
+                </div>
+                ${!isCorrect ? `
+                    <div class="mb-2 text-lg">
+                        <strong>To'g'ri javob:</strong> ${q.options[q.correct]}
+                    </div>
+                ` : ''}
+                <div class="text-white/90 text-lg mb-4">
+                    💡 ${explanation}
+                </div>
+                <button onclick="nextQuestion()" class="w-full py-4 ${isCorrect
+                ? 'bg-emerald-600 hover:bg-emerald-700'
+                : 'bg-red-600 hover:bg-red-700'
+            } text-white rounded-2xl font-bold text-lg transition">
+                    Keyingi savol →
+                </button>
+            </div>
+        `;
+
+        document.body.appendChild(feedbackPanel);
+
+        // Animate in
         setTimeout(() => {
-            currentIdx++;
-            selectedOpt = null;
-            renderQuestion();
-        }, 300);
+            feedbackPanel.classList.add('translate-y-0');
+        }, 50);
     };
 }
+
+// Next question function (called from feedback panel)
+window.nextQuestion = function () {
+    const feedbackPanel = document.getElementById('feedbackPanel');
+    if (feedbackPanel) {
+        feedbackPanel.remove();
+    }
+    currentIdx++;
+    selectedOpt = null;
+    renderQuestion();
+};
 
 // Finish test - client-side grading
 async function finishTest() {

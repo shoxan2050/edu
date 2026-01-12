@@ -60,8 +60,17 @@ export async function handler(event) {
     const MODEL = "xiaomi/mimo-v2-flash:free";
     const gradeLevel = grade || 7;
 
-    const prompt = `${topic} - 5 ta test. 4 variant, 1 to'g'ri.
-JSON: {"questions":[{"question":"?","options":["A","B","C","D"],"correct":0}]}`;
+    const prompt = `Sen ta'lim platformasi uchun test yaratuvchi AIsan. 
+Mavzu: "${topic}"
+Sinf darajasi: ${gradeLevel}-sinf
+
+5 ta test savoli yarat. Har bir savol uchun:
+- 4 ta variant (A, B, C, D)
+- Faqat 1 ta to'g'ri javob
+- MUHIM: Har bir savol uchun "explanation" maydoni bo'lishi SHART - bu nima uchun to'g'ri javob to'g'ri ekanligini 1-2 gapda tushuntiradi
+
+JSON formatda javob ber:
+{"questions":[{"question":"Savol matni?","options":["A varianti","B varianti","C varianti","D varianti"],"correct":0,"explanation":"Bu javob to'g'ri chunki..."}]}`;
 
     // Retry logic for transient errors
     const maxRetries = 3;
