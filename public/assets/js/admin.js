@@ -2,37 +2,25 @@ import { auth, db } from './firebase.js';
 import { ref, get, remove, update } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
 import { logout, showToast } from './auth.js';
 
-// Check admin access
+// Check admin access - uses Firebase role directly
 const init = async (user) => {
     if (!user) {
         window.location.href = '/login';
         return;
     }
 
-    // Verify admin status via backend
-    try {
-        const token = await user.getIdToken();
-        const res = await fetch('/.netlify/functions/checkAdmin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: user.email, uid: user.uid })
-        });
-
-        const data = await res.json();
-
-        if (!data.isAdmin) {
-            showToast("Admin huquqi yo'q! ❌", 'error');
+    // Check admin role from Firebase user data (set by guard.js)
+    if (user.role !== 'admin') {
+        showToast("Admin huquqi yo'q! ❌", 'error');
+        setTimeout(() => {
             window.location.href = '/dashboard';
-            return;
-        }
-
-        // Load users on init
-        loadAllUsers();
-
-    } catch (error) {
-        console.error("Admin check error:", error);
-        window.location.href = '/dashboard';
+        }, 500);
+        return;
     }
+
+    // Admin verified - load users
+    console.log('[Admin] Access granted for:', user.email);
+    loadAllUsers();
 };
 
 if (window.__AUTH_USER__) {
