@@ -73,7 +73,7 @@ MAVZU: "${topic}"
 SINF: ${gradeLevel}-sinf (O'zbekiston maktab dasturi)
 
 QOIDALAR:
-- 5 ta savol bo'lsin
+- 20 ta savol bo'lsin
 - Savollar AYNAN ${gradeLevel}-sinf darajasida
 - O'zbekiston Respublikasi maktab dasturiga mos
 - Variantlar aniq va chalg'ituvchi bo'lmasin
@@ -115,7 +115,7 @@ MUHIM:
                     { role: "user", content: prompt }
                 ],
                 temperature: 0.7,
-                max_tokens: 2000
+                max_tokens: 6000
             })
         });
 
@@ -154,7 +154,7 @@ MUHIM:
             throw new Error("Invalid AI JSON format");
         }
 
-        const validatedQuestions = json.questions.slice(0, 5).map(q => {
+        const validatedQuestions = json.questions.slice(0, 20).map(q => {
             // --- AI VALIDATION RULES ---
             // Rule 1: Question text must be at least 10 characters
             const questionText = String(q.question || '').trim();
