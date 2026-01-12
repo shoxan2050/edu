@@ -42,7 +42,7 @@ export async function handler(event) {
     const userSnap = await admin.database().ref(`users/${decoded.uid}`).once('value');
     const userData = userSnap.val();
 
-    if (userData?.role !== 'teacher') {
+    if (userData?.role !== 'teacher' && userData?.role !== 'admin') {
         return { statusCode: 403, body: JSON.stringify({ error: "Teachers only" }) };
     }
 
