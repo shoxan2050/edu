@@ -56,8 +56,8 @@ export async function handler(event) {
         return { statusCode: 500, body: JSON.stringify({ error: "OpenRouter kaliti yo'q" }) };
     }
 
-    // Eng barqaror bepul model (2026-yanvar)
-    const MODEL = "meta-llama/llama-3.1-8b-instruct:free";
+    // Ishlayotgan bepul model (tekshirilgan!)
+    const MODEL = "xiaomi/mimo-v2-flash:free";
     const gradeLevel = grade || 7;
 
     const prompt = `
