@@ -32,9 +32,12 @@ const init = async (user) => {
         // If no subject selected, show subject list
         if (!subjectId) {
             document.getElementById('subjectTitle').textContent = "Fanni tanlang";
-            const subjects = await DbService.getSubjectsByClass(userClass);
+            const subjectsObj = await DbService.getSubjectsByClass(userClass);
 
-            if (!subjects || subjects.length === 0) {
+            // Convert object to array
+            const subjects = Object.entries(subjectsObj || {}).map(([id, s]) => ({ id, ...s }));
+
+            if (subjects.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full py-20 text-center">
                         <p class="text-xl text-gray-500 mb-6">Hali fanlar qo'shilmagan. 📚</p>
