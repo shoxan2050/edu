@@ -1,130 +1,102 @@
+// netlify/functions/generateTest.js
 export async function handler(event) {
+    if (event.httpMethod !== "POST") {
+        return { statusCode: 405, body: "Method Not Allowed" };
+    }
+
+    const token = event.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return { statusCode: 401, body: JSON.stringify({ error: "Unauthorized" }) };
+    }
+
+    // Firebase Admin - ESM import fix
+    let admin;
     try {
-        if (event.httpMethod !== "POST") {
-            return { statusCode: 405, body: "Method Not Allowed" };
-        }
+        const firebaseAdmin = await import("firebase-admin");
+        admin = firebaseAdmin.default || firebaseAdmin;
 
-        // --- Security Protocols ---
-        const token = event.headers.authorization?.replace('Bearer ', '');
-        if (!token) {
-            return { statusCode: 401, body: JSON.stringify({ error: "Unauthorized" }) };
-        }
-
-        let admin;
-        try {
-            admin = await import("firebase-admin");
-            if (admin.apps.length === 0) {
-                // Check if FIREBASE_SERVICE_ACCOUNT exists
-                if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-                    return { statusCode: 500, body: JSON.stringify({ error: "FIREBASE_SERVICE_ACCOUNT not set" }) };
-                }
-
-                let serviceAccount;
-                try {
-                    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-                } catch (jsonErr) {
-                    return { statusCode: 500, body: JSON.stringify({ error: "FIREBASE_SERVICE_ACCOUNT JSON parse error: " + jsonErr.message }) };
-                }
-
-                admin.initializeApp({
-                    credential: admin.credential.cert(serviceAccount),
-                    databaseURL: serviceAccount.databaseURL || `https://${serviceAccount.project_id}-default-rtdb.firebaseio.com`
-                });
+        if (!admin.apps || admin.apps.length === 0) {
+            if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+                return { statusCode: 500, body: JSON.stringify({ error: "FIREBASE_SERVICE_ACCOUNT not set" }) };
             }
-        } catch (e) {
-            console.error("Firebase Admin Error:", e);
-            return { statusCode: 500, body: JSON.stringify({ error: "Firebase Error: " + e.message }) };
+
+            const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+                databaseURL: `https://${serviceAccount.project_id}-default-rtdb.firebaseio.com`
+            });
         }
+    } catch (e) {
+        console.error("Firebase Admin Error:", e);
+        return { statusCode: 500, body: JSON.stringify({ error: "Firebase Error: " + e.message }) };
+    }
 
-        const decodedToken = await admin.auth().verifyIdToken(token);
-        const userRef = admin.database().ref(`users/${decodedToken.uid}`);
-        const userSnap = await userRef.once('value');
-        const userData = userSnap.val();
+    // Token verification
+    let decoded;
+    try {
+        decoded = await admin.auth().verifyIdToken(token);
+    } catch (e) {
+        return { statusCode: 401, body: JSON.stringify({ error: "Invalid token" }) };
+    }
 
-        if (userData?.role !== 'teacher') {
-            return { statusCode: 403, body: JSON.stringify({ error: "Forbidden: Teachers Only" }) };
-        }
+    const userSnap = await admin.database().ref(`users/${decoded.uid}`).once('value');
+    const userData = userSnap.val();
 
-        // --- Rate Limiting Strategy ---
-        const { topic, subjectId, lessonId, force, grade } = JSON.parse(event.body || "{}");
+    if (userData?.role !== 'teacher') {
+        return { statusCode: 403, body: JSON.stringify({ error: "Teachers only" }) };
+    }
 
-        if (!topic || !lessonId) {
-            return { statusCode: 400, body: JSON.stringify({ error: "Topic and lessonId required" }) };
-        }
+    const { topic, subjectId, lessonId, grade } = JSON.parse(event.body || "{}");
+    if (!topic || !lessonId) {
+        return { statusCode: 400, body: JSON.stringify({ error: "topic va lessonId kerak" }) };
+    }
 
-        const lessonCooldownKey = `limits/lessons/${lessonId}/lastGenerated`;
-        const lastLessonGen = userData.limits?.lessons?.[lessonId]?.lastGenerated || 0;
-        const now = Date.now();
-        const COOLDOWN_24H = 24 * 60 * 60 * 1000;
+    const API_KEY = process.env.OPEN_ROUTER_KEY;
+    if (!API_KEY) {
+        return { statusCode: 500, body: JSON.stringify({ error: "OpenRouter kaliti yo'q" }) };
+    }
 
-        if (!force && (now - lastLessonGen < COOLDOWN_24H)) {
-            const hoursLeft = Math.ceil((COOLDOWN_24H - (now - lastLessonGen)) / (60 * 60 * 1000));
-            return {
-                statusCode: 429,
-                body: JSON.stringify({ error: `Bu dars uchun 24 soat kutish kerak. Qoldi: ~${hoursLeft} soat` })
-            };
-        }
+    // Eng barqaror bepul model (2026-yanvar)
+    const MODEL = "meta-llama/llama-3.1-8b-instruct:free";
+    const gradeLevel = grade || 7;
 
-        await userRef.child(lessonCooldownKey).set(now);
+    const prompt = `
+20 ta test savoli yarat. 
+Mavzu: "${topic}"
+Sinf: ${gradeLevel}-sinf (O'zbekiston maktab dasturi)
 
-        const API_KEY = process.env.OPEN_ROUTER_KEY;
-        if (!API_KEY) {
-            return { statusCode: 500, body: JSON.stringify({ error: "OpenRouter API key missing" }) };
-        }
+Har bir savol uchun:
+- 4 ta variant (A,B,C,D)  
+- To'g'ri javob raqami (0-3)
+- Qisqa tushuntirish
 
-        // OpenRouter model - bepul va tez
-        const MODEL = "xiaomi/mimo-v2-flash:free";
+FAQAT JSON qaytar, hech qanday qo'shimcha matn yo'q:
 
-        // Grade level (default 7)
-        const gradeLevel = grade || 7;
-
-        // --- GRADE-AWARE PROMPT ---
-        const prompt = `
-SEN TA'LIM PLATFORMASI UCHUN TEST YARATUVCHI AIsan.
-
-MAVZU: "${topic}"
-SINF: ${gradeLevel}-sinf (O'zbekiston maktab dasturi)
-
-QOIDALAR:
-- 20 ta savol bo'lsin
-- Savollar AYNAN ${gradeLevel}-sinf darajasida
-- O'zbekiston Respublikasi maktab dasturiga mos
-- Variantlar aniq va chalg'ituvchi bo'lmasin
-- 1 ta to'g'ri javob
-
-FORMAT (QAT'IY - FAQAT JSON):
 {
   "questions": [
     {
       "question": "Savol matni",
-      "options": ["A", "B", "C", "D"],
+      "options": ["A varianti", "B varianti", "C varianti", "D varianti"],
       "correct": 0,
-      "difficulty": "easy | medium | hard",
-      "explanation": "Nima uchun shu javob to'g'ri"
+      "difficulty": "easy",
+      "explanation": "Tushuntirish"
     }
   ]
-}
+}`;
 
-MUHIM:
-- difficulty real baholansin (${gradeLevel}-sinf uchun)
-- explanation qisqa va tushunarli bo'lsin
-- HTML YO'Q, Markdown YO'Q
-- FAQAT JSON qaytar
-`;
-
-        // OpenRouter API call (OpenAI-compatible format)
+    try {
         const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${API_KEY}`,
-                "HTTP-Referer": "https://eduplatform.netlify.app",
-                "X-Title": "EduPlatform Test Generator"
+                "HTTP-Referer": "https://skillway.netlify.app",
+                "X-Title": "EduPlatform"
             },
             body: JSON.stringify({
                 model: MODEL,
                 messages: [
-                    { role: "system", content: "Sen ta'lim platformasi uchun test yaratuvchi AI san. Faqat JSON formatda javob ber." },
+                    { role: "system", content: "Sen test yaratuvchi AI san. Faqat JSON formatda javob ber." },
                     { role: "user", content: prompt }
                 ],
                 temperature: 0.7,
@@ -132,24 +104,23 @@ MUHIM:
             })
         });
 
-        const data = await res.json();
+        if (!res.ok) {
+            const err = await res.text();
+            console.error("OpenRouter error:", err);
+            return { statusCode: 500, body: JSON.stringify({ error: `AI xatosi: ${res.status}` }) };
+        }
 
-        // OpenRouter response format
-        let text = data?.choices?.[0]?.message?.content || "";
+        const data = await res.json();
+        let text = data.choices?.[0]?.message?.content || "";
 
         if (!text) {
-            throw new Error("AI responded with an empty body. Check API quota.");
+            return { statusCode: 500, body: JSON.stringify({ error: "AI bo'sh javob berdi" }) };
         }
 
-        // --- ROBUST JSON EXTRACTION ---
-        // JSON ni tozalash (ba'zan markdown code block bilan keladi)
-        text = text.trim();
-        if (text.startsWith('```json')) {
-            text = text.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        } else if (text.startsWith('```')) {
-            text = text.replace(/^```\s*/, '').replace(/\s*```$/, '');
-        }
+        // JSON ni tozalash
+        text = text.replace(/```json|```/g, '').trim();
 
+        // JSON ni ajratib olish
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
             text = jsonMatch[0];
@@ -159,50 +130,39 @@ MUHIM:
         try {
             json = JSON.parse(text);
         } catch (parseErr) {
-            console.error("JSON Parse Error, raw text:", text);
-            throw new Error("AI javobini o'qib bo'lmadi. Qayta urinib ko'ring.");
+            console.error("JSON parse error:", text);
+            return { statusCode: 500, body: JSON.stringify({ error: "AI javobini o'qib bo'lmadi" }) };
         }
 
-        if (!json.questions || !Array.isArray(json.questions)) {
-            throw new Error("Invalid AI JSON format");
+        if (!json.questions || !Array.isArray(json.questions) || json.questions.length === 0) {
+            return { statusCode: 500, body: JSON.stringify({ error: "AI savollar bermadi" }) };
         }
 
+        // Savollarni validatsiya qilish
         const validatedQuestions = json.questions.slice(0, 20).map(q => {
-            // --- AI VALIDATION RULES ---
-            // Rule 1: Question text must be at least 10 characters
-            const questionText = String(q.question || '').trim();
-            if (questionText.length < 10) {
-                throw new Error("AI savoli juda qisqa. Qayta urinib ko'ring.");
-            }
-
-            // Rule 2: Must have exactly 4 options
             let options = q.options;
             if (options && typeof options === 'object' && !Array.isArray(options)) {
                 options = Object.values(options);
             }
-            if (!Array.isArray(options) || options.length !== 4) {
-                throw new Error("AI 4 ta variant bermadi. Qayta urinib ko'ring.");
+            if (!Array.isArray(options) || options.length < 4) {
+                options = ["A", "B", "C", "D"];
             }
 
-            // Rule 3: Correct must be 0-3
             let correct = q.correct;
             if (typeof correct === 'string') {
-                const charCode = correct.toUpperCase().charCodeAt(0);
-                if (charCode >= 65 && charCode <= 68) {
-                    correct = charCode - 65;
-                } else {
-                    correct = 0;
-                }
-            } else if (typeof correct !== 'number' || correct < 0 || correct > 3) {
+                const code = correct.toUpperCase().charCodeAt(0);
+                correct = code >= 65 && code <= 68 ? code - 65 : 0;
+            }
+            if (typeof correct !== 'number' || correct < 0 || correct > 3) {
                 correct = 0;
             }
 
             return {
-                question: questionText,
-                options: options,
+                question: String(q.question || "Savol").trim(),
+                options: options.slice(0, 4),
                 correct: correct,
-                difficulty: q.difficulty || "o'rtacha",
-                explanation: q.explanation || "Tushuntirish yo'q"
+                difficulty: q.difficulty || "medium",
+                explanation: q.explanation || ""
             };
         });
 
@@ -212,16 +172,13 @@ MUHIM:
             body: JSON.stringify({
                 topic: topic,
                 questions: validatedQuestions,
-                lessonId: lessonId || null,
+                lessonId: lessonId,
                 timestamp: Date.now()
             })
         };
 
     } catch (err) {
-        console.error("AI handler error:", err);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ error: err.message })
-        };
+        console.error("Generate error:", err);
+        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
     }
 }
