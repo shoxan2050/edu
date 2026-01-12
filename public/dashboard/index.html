@@ -68,23 +68,31 @@
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div
                 class="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex flex-col items-center justify-center">
-                <div class="relative flex items-center justify-center mb-4">
-                    <svg class="w-24 h-24 transform -rotate-90">
-                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent"
+                <div class="relative flex items-center justify-center mb-4" style="width: 120px; height: 120px;">
+                    <svg viewBox="0 0 100 100" class="w-full h-full transform -rotate-90">
+                        <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="8" fill="transparent"
                             class="text-gray-100" />
-                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent"
-                            id="progressCircle" stroke-dasharray="251.2" stroke-dashoffset="251.2"
+                        <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="8" fill="transparent"
+                            id="progressCircle" stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"
                             class="text-indigo-600 transition-all duration-1000" />
                     </svg>
-                    <span class="absolute text-xl font-bold text-gray-800"><span id="progressText">0</span>%</span>
+                    <span class="absolute text-2xl font-bold text-gray-800"><span id="progressText">0</span>%</span>
                 </div>
                 <p class="text-gray-600 font-medium">Umumiy progress</p>
             </div>
 
-            <div class="md:col-span-3 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+            <!-- Learning Path Button - Duolingo Style -->
+            <div class="bg-gradient-to-br from-green-500 to-emerald-600 p-6 rounded-3xl shadow-lg text-white flex flex-col justify-center items-center cursor-pointer hover:scale-105 transition-transform"
+                onclick="window.location.href='/path'">
+                <div class="text-4xl mb-2">🛤️</div>
+                <div class="text-xl font-bold">Yo'llar</div>
+                <div class="text-sm opacity-80">Mavzularni o'rganish</div>
+            </div>
+
+            <div class="md:col-span-2 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Bugungi topshiriq (3-5 daqiqa)</h3>
                 <div id="dailyTask"
-                    class="p-6 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center justify-between">
+                    class="p-5 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-2xl">
                             📖</div>
