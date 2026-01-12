@@ -60,24 +60,10 @@ export async function handler(event) {
     const MODEL = "xiaomi/mimo-v2-flash:free";
     const gradeLevel = grade || 7;
 
-    const prompt = `
-10 ta test savoli yarat. 
-Mavzu: "${topic}"
-Sinf: ${gradeLevel}-sinf
+    const prompt = `${topic} mavzusi bo'yicha 5 ta test savoli yarat. Har birida 4 variant va 1 to'g'ri javob.
 
-Har bir savol uchun 4 variant va 1 to'g'ri javob.
-FAQAT JSON qaytar:
-
-{
-  "questions": [
-    {
-      "question": "Savol",
-      "options": ["A", "B", "C", "D"],
-      "correct": 0,
-      "explanation": "Tushuntirish"
-    }
-  ]
-}`;
+JSON format:
+{"questions":[{"question":"...","options":["A","B","C","D"],"correct":0,"explanation":"..."}]}`;
 
     try {
         const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -95,7 +81,7 @@ FAQAT JSON qaytar:
                     { role: "user", content: prompt }
                 ],
                 temperature: 0.7,
-                max_tokens: 3000
+                max_tokens: 1500
             })
         });
 
@@ -134,7 +120,7 @@ FAQAT JSON qaytar:
         }
 
         // Savollarni validatsiya qilish
-        const validatedQuestions = json.questions.slice(0, 10).map(q => {
+        const validatedQuestions = json.questions.slice(0, 5).map(q => {
             let options = q.options;
             if (options && typeof options === 'object' && !Array.isArray(options)) {
                 options = Object.values(options);
