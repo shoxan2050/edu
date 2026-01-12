@@ -61,24 +61,19 @@ export async function handler(event) {
     const gradeLevel = grade || 7;
 
     const prompt = `
-20 ta test savoli yarat. 
+10 ta test savoli yarat. 
 Mavzu: "${topic}"
-Sinf: ${gradeLevel}-sinf (O'zbekiston maktab dasturi)
+Sinf: ${gradeLevel}-sinf
 
-Har bir savol uchun:
-- 4 ta variant (A,B,C,D)  
-- To'g'ri javob raqami (0-3)
-- Qisqa tushuntirish
-
-FAQAT JSON qaytar, hech qanday qo'shimcha matn yo'q:
+Har bir savol uchun 4 variant va 1 to'g'ri javob.
+FAQAT JSON qaytar:
 
 {
   "questions": [
     {
-      "question": "Savol matni",
-      "options": ["A varianti", "B varianti", "C varianti", "D varianti"],
+      "question": "Savol",
+      "options": ["A", "B", "C", "D"],
       "correct": 0,
-      "difficulty": "easy",
       "explanation": "Tushuntirish"
     }
   ]
@@ -100,7 +95,7 @@ FAQAT JSON qaytar, hech qanday qo'shimcha matn yo'q:
                     { role: "user", content: prompt }
                 ],
                 temperature: 0.7,
-                max_tokens: 6000
+                max_tokens: 3000
             })
         });
 
@@ -139,7 +134,7 @@ FAQAT JSON qaytar, hech qanday qo'shimcha matn yo'q:
         }
 
         // Savollarni validatsiya qilish
-        const validatedQuestions = json.questions.slice(0, 20).map(q => {
+        const validatedQuestions = json.questions.slice(0, 10).map(q => {
             let options = q.options;
             if (options && typeof options === 'object' && !Array.isArray(options)) {
                 options = Object.values(options);
