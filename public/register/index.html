@@ -69,6 +69,55 @@
             font-size: 12px;
             color: #4f46e5;
         }
+
+        /* Onboarding card styles */
+        .choice-card {
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid #e5e7eb;
+        }
+
+        .choice-card:hover {
+            border-color: #a5b4fc;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+        }
+
+        .choice-card.selected {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.25);
+        }
+
+        .choice-card.selected .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .check-icon {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.2s ease;
+        }
+
+        .schedule-card {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .schedule-card.selected {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .schedule-card.selected .schedule-days {
+            color: white;
+        }
+
+        .schedule-card.selected .schedule-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
     </style>
 </head>
 
@@ -167,6 +216,159 @@
                     </select>
                 </div>
 
+                <!-- Step 9: Maqsad (Goal) - NEW -->
+                <div class="step" data-step="9">
+                    <div class="space-y-3 mb-4">
+                        <div class="choice-card rounded-2xl p-4 flex items-center gap-4" onclick="selectGoal('til')">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-2xl shadow-lg">
+                                🌍
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">Til o'rganish</div>
+                                <div class="text-sm text-gray-500">IELTS, CEFR darajalari, Ingliz tili</div>
+                            </div>
+                            <div class="check-icon w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="choice-card rounded-2xl p-4 flex items-center gap-4" onclick="selectGoal('it')">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-2xl shadow-lg">
+                                💻
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">IT va Dasturlash</div>
+                                <div class="text-sm text-gray-500">Frontend, Python, Data Science</div>
+                            </div>
+                            <div class="check-icon w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="choice-card rounded-2xl p-4 flex items-center gap-4"
+                            onclick="selectGoal('matematika')">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center text-2xl shadow-lg">
+                                📐
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">Matematika</div>
+                                <div class="text-sm text-gray-500">Maktab kursi, Olimpiada tayyorgarlik</div>
+                            </div>
+                            <div class="check-icon w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="goal" value="">
+                </div>
+
+                <!-- Step 10: Daraja (Level) - NEW -->
+                <div class="step" data-step="10">
+                    <div class="space-y-3 mb-4">
+                        <div class="choice-card rounded-2xl p-4 flex items-center gap-4"
+                            onclick="selectLevel('beginner')">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-2xl shadow-lg">
+                                🌱
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">Boshlang'ich</div>
+                                <div class="text-sm text-gray-500">Endigina boshlayman, asoslarni o'rganaman</div>
+                            </div>
+                            <div class="check-icon w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="choice-card rounded-2xl p-4 flex items-center gap-4"
+                            onclick="selectLevel('intermediate')">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-2xl shadow-lg">
+                                📚
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">O'rta</div>
+                                <div class="text-sm text-gray-500">Ba'zi bilimlarim bor, chuqurlashtirmoqchiman</div>
+                            </div>
+                            <div class="check-icon w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="choice-card rounded-2xl p-4 flex items-center gap-4"
+                            onclick="selectLevel('advanced')">
+                            <div
+                                class="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-2xl shadow-lg">
+                                🚀
+                            </div>
+                            <div class="flex-1">
+                                <div class="font-semibold text-gray-900">Yuqori</div>
+                                <div class="text-sm text-gray-500">Yaxshi bilaman, professional darajaga yetishmoqchiman
+                                </div>
+                            </div>
+                            <div class="check-icon w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M5 13l4 4L19 7" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="level" value="">
+                </div>
+
+                <!-- Step 11: Jadval (Schedule) - NEW -->
+                <div class="step" data-step="11">
+                    <div class="text-center mb-6">
+                        <div class="text-4xl mb-2">📅</div>
+                        <p class="text-gray-600">O'qish jadvalingizni belgilang</p>
+                    </div>
+                    <div class="flex gap-3 mb-6">
+                        <div class="schedule-card choice-card rounded-2xl p-4 text-center" onclick="selectSchedule(3)">
+                            <div class="schedule-days text-3xl font-bold text-gray-900 mb-1">3</div>
+                            <div class="schedule-label text-sm text-gray-500">kun/hafta</div>
+                        </div>
+                        <div class="schedule-card choice-card rounded-2xl p-4 text-center" onclick="selectSchedule(5)">
+                            <div class="schedule-days text-3xl font-bold text-gray-900 mb-1">5</div>
+                            <div class="schedule-label text-sm text-gray-500">kun/hafta</div>
+                        </div>
+                        <div class="schedule-card choice-card rounded-2xl p-4 text-center" onclick="selectSchedule(7)">
+                            <div class="schedule-days text-3xl font-bold text-gray-900 mb-1">7</div>
+                            <div class="schedule-label text-sm text-gray-500">har kuni</div>
+                        </div>
+                    </div>
+
+                    <!-- Streak Preview -->
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-4 border border-indigo-100">
+                        <div class="flex items-center gap-3">
+                            <div class="text-3xl">🔥</div>
+                            <div>
+                                <div class="font-semibold text-gray-900">Streak bilan o'qing!</div>
+                                <div class="text-sm text-gray-600">Har kuni dars qilsangiz, streak'ingiz oshadi</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="schedule" value="">
+                </div>
+
                 <!-- Continue Button -->
                 <button id="continueBtn" onclick="nextStep()"
                     class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition">
@@ -189,7 +391,7 @@
 
     <script>
         let currentStep = 1;
-        const totalSteps = 8;
+        const totalSteps = 11;
         let maktablarData = [];
 
         const stepInfo = {
@@ -200,8 +402,38 @@
             5: { title: "Sinf", desc: "Qaysi sinfda o'qiysiz?" },
             6: { title: "Viloyat", desc: "Viloyatingizni tanlang" },
             7: { title: "Tuman", desc: "Tumaningizni tanlang" },
-            8: { title: "Maktab", desc: "Maktabingizni tanlang" }
+            8: { title: "Maktab", desc: "Maktabingizni tanlang" },
+            9: { title: "Maqsad", desc: "Nimani o'rganmoqchisiz?" },
+            10: { title: "Daraja", desc: "Darajangizni baholang" },
+            11: { title: "Jadval", desc: "Haftada necha kun o'qiysiz?" }
         };
+
+        // Goal selection
+        function selectGoal(goal) {
+            document.getElementById('goal').value = goal;
+            document.querySelectorAll('[data-step="9"] .choice-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        // Level selection
+        function selectLevel(level) {
+            document.getElementById('level').value = level;
+            document.querySelectorAll('[data-step="10"] .choice-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        // Schedule selection
+        function selectSchedule(days) {
+            document.getElementById('schedule').value = days;
+            document.querySelectorAll('[data-step="11"] .schedule-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
 
         function updateUI(direction = 'next') {
             const currentEl = document.querySelector('.step.active');
@@ -230,6 +462,9 @@
                 case 6: return document.getElementById('viloyat').value;
                 case 7: return document.getElementById('tuman').value;
                 case 8: return document.getElementById('maktab').value;
+                case 9: return document.getElementById('goal').value;
+                case 10: return document.getElementById('level').value;
+                case 11: return document.getElementById('schedule').value;
             }
         }
 
@@ -252,7 +487,7 @@
                 const password = document.getElementById('password').value;
                 if (value !== password) { alert("Parollar mos kelmaydi"); return false; }
             }
-            if (currentStep >= 5 && currentStep <= 8 && !value) {
+            if (currentStep >= 5 && currentStep <= 11 && !value) {
                 alert("Iltimos, tanlang");
                 return false;
             }
@@ -292,6 +527,9 @@
                     viloyat: document.getElementById('viloyat').value,
                     tuman: document.getElementById('tuman').value,
                     maktab: document.getElementById('maktab').value,
+                    goal: document.getElementById('goal').value,
+                    level: document.getElementById('level').value,
+                    schedule: parseInt(document.getElementById('schedule').value),
                     role: 'student'
                 }
             });

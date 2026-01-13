@@ -210,6 +210,10 @@ document.addEventListener('multiStepRegister', async (e) => {
             viloyat: data.viloyat,
             tuman: data.tuman,
             maktab: data.maktab,
+            // Onboarding data
+            goal: data.goal || null,           // til, it, matematika
+            level: data.level || null,         // beginner, intermediate, advanced
+            schedule: data.schedule || null,   // 3, 5, 7 (days per week)
             streak: 0,
             lastActive: null,
             progress: {}
