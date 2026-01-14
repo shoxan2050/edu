@@ -12,6 +12,27 @@
             font-family: 'Poppins', sans-serif;
         }
 
+        .phase {
+            display: none;
+        }
+
+        .phase.active {
+            display: block;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .step {
             display: none;
             opacity: 0;
@@ -23,10 +44,6 @@
             animation: slideIn 0.3s ease forwards;
         }
 
-        .step.exit {
-            animation: slideOut 0.3s ease forwards;
-        }
-
         @keyframes slideIn {
             from {
                 opacity: 0;
@@ -36,18 +53,6 @@
             to {
                 opacity: 1;
                 transform: translateX(0);
-            }
-        }
-
-        @keyframes slideOut {
-            from {
-                opacity: 1;
-                transform: translateX(0);
-            }
-
-            to {
-                opacity: 0;
-                transform: translateX(-30px);
             }
         }
 
@@ -126,57 +131,49 @@
         <!-- Card -->
         <div class="bg-white rounded-[2rem] overflow-hidden">
             <!-- Header -->
-            <div class="p-8 pb-6 text-center">
-                <h1 id="stepTitle" class="text-2xl font-bold text-gray-900">Hisob yarating</h1>
-                <p id="stepDesc" class="text-gray-500 mt-1 text-sm">Ismingizni kiriting</p>
+            <div class="p-8 pb-4 text-center">
+                <h1 id="phaseTitle" class="text-2xl font-bold text-gray-900">Hisob yarating</h1>
+                <p id="phaseDesc" class="text-gray-500 mt-1 text-sm">Ma'lumotlaringizni kiriting</p>
             </div>
 
-            <!-- Form Steps -->
-            <div class="px-8 pb-8">
-                <!-- Step 1: Name -->
-                <div class="step active" data-step="1">
+            <!-- PHASE 1: Basic Info Form -->
+            <div id="phase1" class="phase active px-8 pb-8">
+                <form id="basicInfoForm">
+                    <!-- Name -->
                     <div class="relative mb-4">
-                        <input type="text" id="name"
-                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                        <input type="text" id="name" required
+                            class="input-field w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
                             placeholder=" ">
                         <label class="floating-label">Ism va Familiya</label>
                     </div>
-                </div>
 
-                <!-- Step 2: Email -->
-                <div class="step" data-step="2">
+                    <!-- Email -->
                     <div class="relative mb-4">
-                        <input type="email" id="email"
-                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                        <input type="email" id="email" required
+                            class="input-field w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
                             placeholder=" ">
                         <label class="floating-label">Email manzil</label>
                     </div>
-                </div>
 
-                <!-- Step 3: Password -->
-                <div class="step" data-step="3">
+                    <!-- Password -->
                     <div class="relative mb-4">
-                        <input type="password" id="password"
-                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                        <input type="password" id="password" required minlength="6"
+                            class="input-field w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
                             placeholder=" ">
-                        <label class="floating-label">Parol</label>
+                        <label class="floating-label">Parol (kamida 6 ta belgi)</label>
                     </div>
-                </div>
 
-                <!-- Step 4: Confirm Password -->
-                <div class="step" data-step="4">
+                    <!-- Confirm Password -->
                     <div class="relative mb-4">
-                        <input type="password" id="confirmPassword"
-                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                        <input type="password" id="confirmPassword" required
+                            class="input-field w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
                             placeholder=" ">
                         <label class="floating-label">Parolni tasdiqlang</label>
                     </div>
-                </div>
 
-                <!-- Step 5: Sinf -->
-                <div class="step" data-step="5">
-                    <select id="class"
-                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                    <!-- Sinf -->
+                    <select id="class" required
+                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
                         <option value="">Sinfni tanlang...</option>
                         <option value="1">1-sinf</option>
                         <option value="2">2-sinf</option>
@@ -190,34 +187,38 @@
                         <option value="10">10-sinf</option>
                         <option value="11">11-sinf</option>
                     </select>
-                </div>
 
-                <!-- Step 6: Viloyat -->
-                <div class="step" data-step="6">
-                    <select id="viloyat" onchange="loadTumanlar()"
-                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                    <!-- Viloyat -->
+                    <select id="viloyat" onchange="loadTumanlar()" required
+                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
                         <option value="">Viloyatni tanlang...</option>
                     </select>
-                </div>
 
-                <!-- Step 7: Tuman -->
-                <div class="step" data-step="7">
-                    <select id="tuman" onchange="loadMaktablar()"
-                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                    <!-- Tuman -->
+                    <select id="tuman" onchange="loadMaktablar()" required
+                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
                         <option value="">Tumanni tanlang...</option>
                     </select>
-                </div>
 
-                <!-- Step 8: Maktab -->
-                <div class="step" data-step="8">
-                    <select id="maktab"
-                        class="w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-4">
+                    <!-- Maktab -->
+                    <select id="maktab" required
+                        class="w-full px-4 py-3 border-2 border-gray-200 rounded-2xl focus:border-indigo-500 outline-none transition cursor-pointer mb-6">
                         <option value="">Maktabni tanlang...</option>
                     </select>
-                </div>
 
-                <!-- Step 9: Maqsad (Goal) - NEW -->
-                <div class="step" data-step="9">
+                    <!-- Continue Button -->
+                    <button type="submit"
+                        class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition">
+                        Davom etish →
+                    </button>
+                </form>
+            </div>
+
+            <!-- PHASE 2: Goals (Sequential Steps) -->
+            <div id="phase2" class="phase px-8 pb-8">
+
+                <!-- Step 1: Maqsad (Goal) -->
+                <div class="step active" data-step="1">
                     <div class="space-y-3 mb-4">
                         <div class="choice-card rounded-2xl p-4 flex items-center gap-4" onclick="selectGoal('til')">
                             <div
@@ -274,8 +275,8 @@
                     <input type="hidden" id="goal" value="">
                 </div>
 
-                <!-- Step 10: Daraja (Level) - NEW -->
-                <div class="step" data-step="10">
+                <!-- Step 2: Daraja (Level) -->
+                <div class="step" data-step="2">
                     <div class="space-y-3 mb-4">
                         <div class="choice-card rounded-2xl p-4 flex items-center gap-4"
                             onclick="selectLevel('beginner')">
@@ -335,8 +336,8 @@
                     <input type="hidden" id="level" value="">
                 </div>
 
-                <!-- Step 11: Jadval (Schedule) - NEW -->
-                <div class="step" data-step="11">
+                <!-- Step 3: Jadval (Schedule) -->
+                <div class="step" data-step="3">
                     <div class="text-center mb-6">
                         <div class="text-4xl mb-2">📅</div>
                         <p class="text-gray-600">O'qish jadvalingizni belgilang</p>
@@ -369,15 +370,14 @@
                     <input type="hidden" id="schedule" value="">
                 </div>
 
-                <!-- Continue Button -->
-                <button id="continueBtn" onclick="nextStep()"
-                    class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition">
+                <!-- Goal Navigation Buttons -->
+                <button id="goalContinueBtn" onclick="nextGoalStep()"
+                    class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition mt-4">
                     Davom etish
                 </button>
 
-                <!-- Back Button -->
-                <button id="backBtn" onclick="prevStep()"
-                    class="hidden w-full py-3 mt-3 text-gray-500 font-medium hover:text-gray-700 transition">
+                <button id="goalBackBtn" onclick="prevGoalStep()"
+                    class="w-full py-3 mt-3 text-gray-500 font-medium hover:text-gray-700 transition">
                     ← Orqaga
                 </button>
             </div>
@@ -390,131 +390,111 @@
     </div>
 
     <script>
-        let currentStep = 1;
-        const totalSteps = 11;
         let maktablarData = [];
+        let currentGoalStep = 1;
+        const totalGoalSteps = 3;
 
-        const stepInfo = {
-            1: { title: "Hisob yarating", desc: "Ismingizni kiriting" },
-            2: { title: "Email", desc: "Email manzilingizni kiriting" },
-            3: { title: "Parol", desc: "Xavfsiz parol yarating" },
-            4: { title: "Tasdiqlash", desc: "Parolni qayta kiriting" },
-            5: { title: "Sinf", desc: "Qaysi sinfda o'qiysiz?" },
-            6: { title: "Viloyat", desc: "Viloyatingizni tanlang" },
-            7: { title: "Tuman", desc: "Tumaningizni tanlang" },
-            8: { title: "Maktab", desc: "Maktabingizni tanlang" },
-            9: { title: "Maqsad", desc: "Nimani o'rganmoqchisiz?" },
-            10: { title: "Daraja", desc: "Darajangizni baholang" },
-            11: { title: "Jadval", desc: "Haftada necha kun o'qiysiz?" }
+        const goalStepInfo = {
+            1: { title: "Maqsadingiz", desc: "Nimani o'rganmoqchisiz?" },
+            2: { title: "Darajangiz", desc: "Hozirgi bilim darajangiz qanday?" },
+            3: { title: "Jadvalingiz", desc: "Haftada necha kun o'qiysiz?" }
         };
 
-        // Goal selection
+        // Phase 1 form submission
+        document.getElementById('basicInfoForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Validate passwords match
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                alert("Parollar mos kelmaydi!");
+                return;
+            }
+
+            // Move to Phase 2 (Goals)
+            document.getElementById('phase1').classList.remove('active');
+            document.getElementById('phase2').classList.add('active');
+            document.getElementById('phaseTitle').textContent = goalStepInfo[1].title;
+            document.getElementById('phaseDesc').textContent = goalStepInfo[1].desc;
+        });
+
+        // Goal selection functions
         function selectGoal(goal) {
             document.getElementById('goal').value = goal;
-            document.querySelectorAll('[data-step="9"] .choice-card').forEach(card => {
+            document.querySelectorAll('[data-step="1"] .choice-card').forEach(card => {
                 card.classList.remove('selected');
             });
             event.currentTarget.classList.add('selected');
         }
 
-        // Level selection
         function selectLevel(level) {
             document.getElementById('level').value = level;
-            document.querySelectorAll('[data-step="10"] .choice-card').forEach(card => {
+            document.querySelectorAll('[data-step="2"] .choice-card').forEach(card => {
                 card.classList.remove('selected');
             });
             event.currentTarget.classList.add('selected');
         }
 
-        // Schedule selection
         function selectSchedule(days) {
             document.getElementById('schedule').value = days;
-            document.querySelectorAll('[data-step="11"] .schedule-card').forEach(card => {
+            document.querySelectorAll('[data-step="3"] .schedule-card').forEach(card => {
                 card.classList.remove('selected');
             });
             event.currentTarget.classList.add('selected');
         }
 
-        function updateUI(direction = 'next') {
-            const currentEl = document.querySelector('.step.active');
-            const nextEl = document.querySelector(`[data-step="${currentStep}"]`);
+        function updateGoalUI() {
+            document.querySelectorAll('#phase2 .step').forEach(s => s.classList.remove('active'));
+            document.querySelector(`#phase2 [data-step="${currentGoalStep}"]`).classList.add('active');
 
-            if (currentEl && currentEl !== nextEl) {
-                currentEl.classList.remove('active');
-            }
+            document.getElementById('phaseTitle').textContent = goalStepInfo[currentGoalStep].title;
+            document.getElementById('phaseDesc').textContent = goalStepInfo[currentGoalStep].desc;
 
-            nextEl.classList.add('active');
-
-            document.getElementById('stepTitle').textContent = stepInfo[currentStep].title;
-            document.getElementById('stepDesc').textContent = stepInfo[currentStep].desc;
-
-            document.getElementById('backBtn').classList.toggle('hidden', currentStep === 1);
-            document.getElementById('continueBtn').textContent = currentStep === totalSteps ? "Ro'yxatdan o'tish" : "Davom etish";
+            document.getElementById('goalContinueBtn').textContent =
+                currentGoalStep === totalGoalSteps ? "Ro'yxatdan o'tish" : "Davom etish";
         }
 
-        function getStepValue(step) {
+        function getGoalStepValue(step) {
             switch (step) {
-                case 1: return document.getElementById('name').value.trim();
-                case 2: return document.getElementById('email').value.trim();
-                case 3: return document.getElementById('password').value;
-                case 4: return document.getElementById('confirmPassword').value;
-                case 5: return document.getElementById('class').value;
-                case 6: return document.getElementById('viloyat').value;
-                case 7: return document.getElementById('tuman').value;
-                case 8: return document.getElementById('maktab').value;
-                case 9: return document.getElementById('goal').value;
-                case 10: return document.getElementById('level').value;
-                case 11: return document.getElementById('schedule').value;
+                case 1: return document.getElementById('goal').value;
+                case 2: return document.getElementById('level').value;
+                case 3: return document.getElementById('schedule').value;
             }
         }
 
-        function validateStep() {
-            const value = getStepValue(currentStep);
-
-            if (currentStep === 1 && !value) {
-                alert("Iltimos, ismingizni kiriting");
-                return false;
-            }
-            if (currentStep === 2) {
-                if (!value) { alert("Iltimos, email kiriting"); return false; }
-                if (!value.includes('@')) { alert("Noto'g'ri email formati"); return false; }
-            }
-            if (currentStep === 3) {
-                if (!value) { alert("Iltimos, parol kiriting"); return false; }
-                if (value.length < 6) { alert("Parol kamida 6 ta belgi bo'lishi kerak"); return false; }
-            }
-            if (currentStep === 4) {
-                const password = document.getElementById('password').value;
-                if (value !== password) { alert("Parollar mos kelmaydi"); return false; }
-            }
-            if (currentStep >= 5 && currentStep <= 11 && !value) {
+        function nextGoalStep() {
+            const value = getGoalStepValue(currentGoalStep);
+            if (!value) {
                 alert("Iltimos, tanlang");
-                return false;
+                return;
             }
-            return true;
-        }
 
-        function nextStep() {
-            if (!validateStep()) return;
-
-            if (currentStep === totalSteps) {
+            if (currentGoalStep === totalGoalSteps) {
                 submitForm();
                 return;
             }
 
-            currentStep++;
-            updateUI('next');
+            currentGoalStep++;
+            updateGoalUI();
         }
 
-        function prevStep() {
-            if (currentStep > 1) {
-                currentStep--;
-                updateUI('prev');
+        function prevGoalStep() {
+            if (currentGoalStep === 1) {
+                // Go back to Phase 1
+                document.getElementById('phase2').classList.remove('active');
+                document.getElementById('phase1').classList.add('active');
+                document.getElementById('phaseTitle').textContent = "Hisob yarating";
+                document.getElementById('phaseDesc').textContent = "Ma'lumotlaringizni kiriting";
+            } else {
+                currentGoalStep--;
+                updateGoalUI();
             }
         }
 
         async function submitForm() {
-            const btn = document.getElementById('continueBtn');
+            const btn = document.getElementById('goalContinueBtn');
             btn.disabled = true;
             btn.textContent = "Yuklanmoqda...";
 
@@ -593,10 +573,6 @@
                 maktabSelect.innerHTML += `<option value="${m}">${m}</option>`;
             });
         }
-
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') nextStep();
-        });
 
         document.addEventListener('DOMContentLoaded', loadMaktablarData);
     </script>

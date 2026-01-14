@@ -12,29 +12,6 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        .step {
-            display: none;
-            opacity: 0;
-            transform: translateX(30px);
-        }
-
-        .step.active {
-            display: block;
-            animation: slideIn 0.3s ease forwards;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
         .floating-label {
             position: absolute;
             top: 50%;
@@ -62,44 +39,45 @@
         <div class="bg-white rounded-[2rem] overflow-hidden">
             <!-- Header -->
             <div class="p-8 pb-6 text-center">
-                <h1 id="stepTitle" class="text-2xl font-bold text-gray-900">Xush kelibsiz</h1>
-                <p id="stepDesc" class="text-gray-500 mt-1 text-sm">Email manzilingizni kiriting</p>
+                <div class="text-4xl mb-3">👋</div>
+                <h1 class="text-2xl font-bold text-gray-900">Xush kelibsiz</h1>
+                <p class="text-gray-500 mt-1 text-sm">Hisobingizga kiring</p>
             </div>
 
-            <!-- Form Steps -->
-            <div class="px-8 pb-8">
-                <!-- Step 1: Email -->
-                <div class="step active" data-step="1">
-                    <div class="relative mb-4">
-                        <input type="email" id="email"
-                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
-                            placeholder=" ">
-                        <label class="floating-label">Email manzil</label>
-                    </div>
+            <!-- Login Form -->
+            <form id="loginForm" class="px-8 pb-8">
+                <!-- Email -->
+                <div class="relative mb-4">
+                    <input type="email" id="email" required
+                        class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                        placeholder=" ">
+                    <label class="floating-label">Email manzil</label>
                 </div>
 
-                <!-- Step 2: Password -->
-                <div class="step" data-step="2">
-                    <div class="relative mb-4">
-                        <input type="password" id="password"
-                            class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
-                            placeholder=" ">
-                        <label class="floating-label">Parol</label>
-                    </div>
+                <!-- Password -->
+                <div class="relative mb-6">
+                    <input type="password" id="password" required
+                        class="input-field w-full px-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:ring-0 outline-none transition"
+                        placeholder=" ">
+                    <label class="floating-label">Parol</label>
                 </div>
 
-                <!-- Continue Button -->
-                <button id="continueBtn" onclick="nextStep()"
+                <!-- Remember me -->
+                <div class="flex items-center justify-between mb-6">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="remember"
+                            class="w-4 h-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-sm text-gray-600">Meni eslab qol</span>
+                    </label>
+                    <a href="#" class="text-sm text-indigo-600 hover:underline">Parolni unutdim</a>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitBtn"
                     class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition">
-                    Davom etish
+                    Kirish
                 </button>
-
-                <!-- Back Button -->
-                <button id="backBtn" onclick="prevStep()"
-                    class="hidden w-full py-3 mt-3 text-gray-500 font-medium hover:text-gray-700 transition">
-                    ← Orqaga
-                </button>
-            </div>
+            </form>
         </div>
 
         <!-- Register Link -->
@@ -110,84 +88,32 @@
     </div>
 
     <script>
-        let currentStep = 1;
-        const totalSteps = 2;
+        const loginForm = document.getElementById('loginForm');
 
-        const stepInfo = {
-            1: { title: "Xush kelibsiz", desc: "Email manzilingizni kiriting" },
-            2: { title: "Parol", desc: "Parolingizni kiriting" }
-        };
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        function updateUI() {
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.querySelector(`[data-step="${currentStep}"]`).classList.add('active');
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('submitBtn');
 
-            document.getElementById('stepTitle').textContent = stepInfo[currentStep].title;
-            document.getElementById('stepDesc').textContent = stepInfo[currentStep].desc;
-
-            document.getElementById('backBtn').classList.toggle('hidden', currentStep === 1);
-            document.getElementById('continueBtn').textContent = currentStep === totalSteps ? "Kirish" : "Davom etish";
-        }
-
-        function getStepValue(step) {
-            switch (step) {
-                case 1: return document.getElementById('email').value.trim();
-                case 2: return document.getElementById('password').value;
+            // Validation
+            if (!email || !email.includes('@')) {
+                alert("Noto'g'ri email formati");
+                return;
             }
-        }
-
-        function validateStep() {
-            const value = getStepValue(currentStep);
-
-            if (currentStep === 1) {
-                if (!value) { alert("Iltimos, email kiriting"); return false; }
-                if (!value.includes('@')) { alert("Noto'g'ri email formati"); return false; }
-            }
-            if (currentStep === 2) {
-                if (!value) { alert("Iltimos, parol kiriting"); return false; }
-            }
-            return true;
-        }
-
-        function nextStep() {
-            if (!validateStep()) return;
-
-            if (currentStep === totalSteps) {
-                submitForm();
+            if (!password) {
+                alert("Iltimos, parol kiriting");
                 return;
             }
 
-            currentStep++;
-            updateUI();
-
-            if (currentStep === 2) {
-                setTimeout(() => document.getElementById('password').focus(), 100);
-            }
-        }
-
-        function prevStep() {
-            if (currentStep > 1) {
-                currentStep--;
-                updateUI();
-            }
-        }
-
-        async function submitForm() {
-            const btn = document.getElementById('continueBtn');
             btn.disabled = true;
             btn.textContent = "Yuklanmoqda...";
 
             const event = new CustomEvent('multiStepLogin', {
-                detail: {
-                    email: document.getElementById('email').value,
-                    password: document.getElementById('password').value
-                }
+                detail: { email, password }
             });
             document.dispatchEvent(event);
-        }
-
-        document.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') nextStep();
         });
     </script>
     <script type="module" src="../assets/js/auth.js"></script>
