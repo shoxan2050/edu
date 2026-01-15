@@ -55,6 +55,34 @@
             background: linear-gradient(135deg, #fbbf24, #f59e0b);
             animation: bounce-in 0.8s 0.3s ease-out both;
         }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e0e7ff;
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .score-container {
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 
@@ -76,7 +104,14 @@
         <p id="resultDesc" class="text-gray-500 mb-8">Siz darsni muvaffaqiyatli yakunladingiz</p>
 
         <div class="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 mb-8">
-            <div class="text-5xl font-bold text-indigo-600 mb-1"><span id="scoreText">0</span>%</div>
+            <div class="score-container">
+                <!-- Loading spinner - dastlab ko'rsatiladi -->
+                <div id="scoreLoading" class="loading-spinner"></div>
+                <!-- Foiz - bazadan kelgandan keyin ko'rsatiladi -->
+                <div id="scoreDisplay" class="hidden">
+                    <div class="text-5xl font-bold text-indigo-600 mb-1"><span id="scoreText">0</span>%</div>
+                </div>
+            </div>
             <div class="text-indigo-400 font-semibold uppercase tracking-widest text-sm">To'g'ri javoblar</div>
             <div id="correctInfo" class="text-sm text-gray-500 mt-2"></div>
         </div>
@@ -189,6 +224,12 @@
         }
 
         function renderResult(score) {
+            // Loading spinnerni yashirish va foizni ko'rsatish
+            const loadingEl = document.getElementById('scoreLoading');
+            const displayEl = document.getElementById('scoreDisplay');
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (displayEl) displayEl.classList.remove('hidden');
+
             document.getElementById('scoreText').textContent = score;
 
             if (score >= 70) {
