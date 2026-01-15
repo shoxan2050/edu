@@ -140,6 +140,7 @@
         const showConfetti = urlParams.get('confetti') === '1';
         const correct = urlParams.get('correct');
         const total = urlParams.get('total');
+        const urlScore = urlParams.get('score'); // URL dan score olish
 
         document.getElementById('backToPath').href = `/path?subject=${subjectId}`;
         document.getElementById('retakeButton').href = `/test?subject=${subjectId}&lesson=${lessonId}`;
@@ -149,10 +150,17 @@
             document.getElementById('correctInfo').textContent = `${correct} / ${total} savol`;
         }
 
+        // Agar URL da score bo'lsa - darhol ko'rsatish (bazadan kutmaslik)
+        if (urlScore !== null && urlScore !== undefined) {
+            renderResult(parseInt(urlScore));
+        }
+
         // Check for wrong questions in session storage
         const wrongQuestions = sessionStorage.getItem('wrongQuestions');
         if (wrongQuestions) {
-            document.getElementById('retryWrongSection').classList.remove('hidden');
+            try {
+                document.getElementById('retryWrongSection')?.classList.remove('hidden');
+            } catch (e) { }
         }
 
         // Retry wrong questions
@@ -196,8 +204,10 @@
             }, 250);
         }
 
-        // Render result based on DB
+        // Render result based on DB (faqat URL da score bo'lmasa)
         document.addEventListener('authReady', async (e) => {
+            if (urlScore !== null && urlScore !== undefined) return; // URL dan olindi, bazadan olish shart emas
+
             const user = e.detail;
             if (user) {
                 try {
@@ -206,6 +216,7 @@
                         const realScore = snap.val();
                         renderResult(realScore);
                     } else {
+                        // Bazada ham yo'q, URL da ham yo'q - dashboard ga qaytarish
                         window.location.href = "/dashboard";
                     }
                 } catch (err) {
@@ -214,7 +225,8 @@
             }
         });
 
-        if (window.__AUTH_USER__) {
+        // Fallback: faqat URL da score bo'lmasa bazadan olish
+        if (window.__AUTH_USER__ && (urlScore === null || urlScore === undefined)) {
             const user = window.__AUTH_USER__;
             get(ref(db, `users/${user.uid}/progress/${subjectId}/${lessonId}`))
                 .then(snap => {
