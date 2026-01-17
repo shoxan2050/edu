@@ -9,6 +9,15 @@
     <meta name="description"
         content="Duolingo uslubidagi roadmap, interaktiv testlar va natijalarni kuzatish tizimi bilan yangi marralarni zabt eting.">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // Auto-redirect: returning visitors go to login
+        if (localStorage.getItem('edu_visited')) {
+            window.location.href = '/login';
+        } else {
+            // Mark as visited for next time
+            localStorage.setItem('edu_visited', 'true');
+        }
+    </script>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
