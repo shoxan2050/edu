@@ -33,6 +33,28 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
+        /* Gradient text - proper cross-browser support */
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            background-size: 200% 200%;
+            animation: gradient-shift 3s ease infinite;
+        }
+
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
         .bg-gradient-hero {
             background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 50%, #f0e6fa 100%);
         }
@@ -208,8 +230,7 @@
             </div>
 
             <h1 class="text-5xl md:text-7xl font-extrabold mb-6 text-gray-900 leading-tight">
-                Bilim olish endi <br class="hidden sm:block"><span
-                    class="bg-clip-text text-transparent bg-gradient-custom">qiziqarli va oson</span>
+                Bilim olish endi <br class="hidden sm:block"><span class="gradient-text">qiziqarli va oson</span>
             </h1>
             <p class="text-xl md:text-2xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
                 Duolingo uslubidagi roadmap, interaktiv testlar va natijalarni kuzatish tizimi bilan yangi marralarni
