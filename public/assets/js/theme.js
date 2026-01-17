@@ -1,5 +1,5 @@
-// Shared Navbar and Settings Modal for EduPlatform HTML pages
-// This script injects the navbar and handles theme switching
+// Shared Theme, Settings Modal, and Drawer Menu for EduPlatform HTML pages
+// This script injects the drawer menu and handles theme switching
 
 (function () {
     'use strict';
@@ -7,6 +7,121 @@
     // Apply saved theme immediately to prevent flash
     const savedTheme = localStorage.getItem('theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Get user role from localStorage (set by auth.js)
+    function getUserRole() {
+        try {
+            const userData = localStorage.getItem('eduUser');
+            if (userData) {
+                const user = JSON.parse(userData);
+                return user.role || 'student';
+            }
+        } catch (e) { }
+        return 'student';
+    }
+
+    function getUserName() {
+        try {
+            const userData = localStorage.getItem('eduUser');
+            if (userData) {
+                const user = JSON.parse(userData);
+                return user.name || "O'quvchi";
+            }
+        } catch (e) { }
+        return "O'quvchi";
+    }
+
+    // Menu items based on role
+    const studentMenuItems = [
+        { icon: '📊', label: 'Dashboard', path: '/dashboard' },
+        { icon: '🛤️', label: "Yo'llar", path: '/path' },
+        { icon: '📚', label: 'Mening darslarim', path: '/path' },
+        { icon: '📈', label: 'Natijalarim', path: '/dashboard' },
+        { icon: '🏆', label: 'Yutuqlarim', path: '/dashboard' },
+    ];
+
+    const teacherMenuItems = [
+        { icon: '📊', label: 'Dashboard', path: '/dashboard' },
+        { icon: '📚', label: 'Fanlar boshqaruvi', path: '/teacher' },
+        { icon: '👨‍🎓', label: "O'quvchilar statistikasi", path: '/teacher' },
+        { icon: '⚙️', label: 'Boshqaruv paneli', path: '/teacher' },
+    ];
+
+    const adminMenuItems = [
+        ...teacherMenuItems,
+        { icon: '👑', label: 'Admin panel', path: '/admin' },
+    ];
+
+    function getMenuItems() {
+        const role = getUserRole();
+        if (role === 'admin') return adminMenuItems;
+        if (role === 'teacher') return teacherMenuItems;
+        return studentMenuItems;
+    }
+
+    function getRoleLabel() {
+        const role = getUserRole();
+        if (role === 'admin') return 'Administrator';
+        if (role === 'teacher') return "O'qituvchi";
+        return "O'quvchi";
+    }
+
+    // Drawer HTML
+    function createDrawerHTML() {
+        const menuItems = getMenuItems();
+        const menuHTML = menuItems.map(item => `
+            <a href="${item.path}" onclick="closeDrawer()" 
+               class="flex items-center gap-4 px-6 py-3 text-gray-700 hover:bg-gray-50 transition">
+                <span class="text-xl">${item.icon}</span>
+                <span class="font-medium">${item.label}</span>
+            </a>
+        `).join('');
+
+        return `
+        <div id="drawerMenu" class="fixed inset-0 z-50 hidden">
+            <!-- Overlay -->
+            <div class="fixed inset-0 bg-black/50 transition-opacity" onclick="closeDrawer()"></div>
+            
+            <!-- Drawer Panel -->
+            <div class="relative w-72 max-w-[80vw] bg-white shadow-2xl flex flex-col h-full animate-fade-in">
+                <!-- Header -->
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-2xl">🎯</span>
+                        <button onclick="closeDrawer()" class="text-white/80 hover:text-white text-xl">✕</button>
+                    </div>
+                    <h2 class="text-xl font-bold">EduPlatform</h2>
+                    <p class="text-white/80 text-sm">${getUserName()}</p>
+                    <p class="text-white/60 text-xs">${getRoleLabel()}</p>
+                </div>
+
+                <!-- Menu Items -->
+                <div class="flex-1 py-4 overflow-y-auto">
+                    ${menuHTML}
+
+                    <!-- Divider -->
+                    <div class="border-t border-gray-100 my-4 mx-4"></div>
+
+                    <!-- Settings -->
+                    <button onclick="closeDrawer(); openSettingsModal();" 
+                            class="flex items-center gap-4 px-6 py-3 text-gray-700 hover:bg-gray-50 w-full text-left">
+                        <span class="text-xl">⚙️</span>
+                        <span class="font-medium">Sozlamalar</span>
+                    </button>
+                </div>
+
+                <!-- Footer -->
+                <div class="border-t border-gray-100 p-4">
+                    <button onclick="logout()" 
+                            class="flex items-center gap-4 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl w-full transition">
+                        <span class="text-xl">🚪</span>
+                        <span class="font-medium">Chiqish</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        `;
+    }
 
     // Settings Modal HTML
     const settingsModalHTML = `
@@ -77,16 +192,63 @@
     </div>
     `;
 
-    // Inject Settings Modal once DOM is ready
+    // Inject Hamburger Button into existing nav
+    function injectHamburgerButton() {
+        const nav = document.querySelector('nav');
+        if (nav && !document.getElementById('hamburgerBtn')) {
+            const firstChild = nav.firstElementChild;
+            if (firstChild) {
+                const hamburgerBtn = document.createElement('button');
+                hamburgerBtn.id = 'hamburgerBtn';
+                hamburgerBtn.className = 'p-2 hover:bg-gray-100 rounded-xl transition mr-2';
+                hamburgerBtn.setAttribute('aria-label', 'Menu');
+                hamburgerBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                `;
+                hamburgerBtn.onclick = openDrawer;
+
+                // Insert at the beginning of nav's first flex container
+                const flexContainer = nav.querySelector('.flex');
+                if (flexContainer) {
+                    flexContainer.insertBefore(hamburgerBtn, flexContainer.firstChild);
+                } else {
+                    nav.insertBefore(hamburgerBtn, firstChild);
+                }
+            }
+        }
+    }
+
+    // Inject once DOM is ready
     document.addEventListener('DOMContentLoaded', function () {
-        // Only inject if not already present
+        // Inject drawer
+        if (!document.getElementById('drawerMenu')) {
+            document.body.insertAdjacentHTML('beforeend', createDrawerHTML());
+        }
+
+        // Inject settings modal
         if (!document.getElementById('settingsModal')) {
             document.body.insertAdjacentHTML('beforeend', settingsModalHTML);
         }
 
-        // Update theme button states
+        // Inject hamburger button
+        injectHamburgerButton();
+
+        // Update theme buttons
         updateThemeButtons();
     });
+
+    // Drawer Functions
+    window.openDrawer = function () {
+        const drawer = document.getElementById('drawerMenu');
+        if (drawer) drawer.classList.remove('hidden');
+    };
+
+    window.closeDrawer = function () {
+        const drawer = document.getElementById('drawerMenu');
+        if (drawer) drawer.classList.add('hidden');
+    };
 
     // Settings Modal Functions
     window.openSettingsModal = function () {
@@ -99,9 +261,7 @@
 
     window.closeSettingsModal = function () {
         const modal = document.getElementById('settingsModal');
-        if (modal) {
-            modal.classList.add('hidden');
-        }
+        if (modal) modal.classList.add('hidden');
     };
 
     // Theme Functions
@@ -119,6 +279,12 @@
             btn.classList.toggle('bg-indigo-50', isSelected);
         });
     }
+
+    // Logout function
+    window.logout = function () {
+        localStorage.removeItem('eduUser');
+        window.location.href = '/login';
+    };
 
     // Password change (placeholder)
     window.changePassword = function () {
