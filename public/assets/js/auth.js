@@ -214,9 +214,16 @@ document.addEventListener('multiStepRegister', async (e) => {
             goal: data.goal || null,           // til, it, matematika
             level: data.level || null,         // beginner, intermediate, advanced
             schedule: data.schedule || null,   // 3, 5, 7 (days per week)
+            // Adaptive learning data
+            knowledgeLevels: data.knowledgeLevels || {},  // Per-subject knowledge levels
+            initialAssessment: data.assessmentResults ? {
+                completedAt: Date.now(),
+                results: data.assessmentResults
+            } : null,
             streak: 0,
             lastActive: null,
-            progress: {}
+            progress: {},
+            adaptiveTests: {}  // Will be populated by background generation
         };
 
         await set(ref(db, 'users/' + user.uid), userData);
@@ -226,13 +233,14 @@ document.addEventListener('multiStepRegister', async (e) => {
         setTimeout(() => window.location.href = '/dashboard', 1500);
     } catch (error) {
         showToast(getFriendlyErrorMessage(error.code), 'error');
-        const btn = document.getElementById('continueBtn');
+        const btn = document.getElementById('finishBtn') || document.getElementById('continueBtn');
         if (btn) {
             btn.disabled = false;
             btn.textContent = "Qayta urinish";
         }
     }
 });
+
 
 // Multi-Step Login Handler
 document.addEventListener('multiStepLogin', async (e) => {

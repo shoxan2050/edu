@@ -1,6 +1,7 @@
 import { auth } from './firebase.js';
 import { logout, showToast } from './auth.js';
 import { DbService } from './modules/db-service.js';
+import { AdaptiveService } from './modules/adaptive-service.js';
 import { getUserBadges, renderBadges, getWeeklyLeaderboard, renderLeaderboard } from './badges.js';
 
 const list = document.getElementById('subjectsList');
@@ -101,12 +102,38 @@ const init = async (user) => {
 
             // Load available tests for student
             loadAvailableTests(user.uid, userClass);
+
+            // Trigger background adaptive test generation
+            triggerBackgroundGeneration(user, userData, filteredSubjects, userClass);
         }
     } catch (error) {
         console.error("Dashboard error", error);
         showToast("Ma'lumotlarni yuklashda xatolik yuz berdi ❌", 'error');
     }
 };
+
+// Background adaptive test generation
+async function triggerBackgroundGeneration(user, userData, subjects, grade) {
+    try {
+        console.log('[Dashboard] Triggering background test generation...');
+
+        // Only generate if user has few adaptive tests
+        const existingTests = await AdaptiveService.getAllAdaptiveTests(user.uid);
+        const testCount = Object.keys(existingTests).length;
+
+        if (testCount < 10) {
+            // Generate tests in background (non-blocking)
+            setTimeout(() => {
+                AdaptiveService.backgroundGenerateTests(user.uid, subjects, grade);
+            }, 3000); // Delay 3 seconds to let dashboard load first
+        } else {
+            console.log('[Dashboard] Sufficient adaptive tests exist, skipping generation');
+        }
+    } catch (e) {
+        console.error('[Dashboard] Background generation error:', e);
+    }
+}
+
 
 // Load Available Tests
 async function loadAvailableTests(uid, classNum) {

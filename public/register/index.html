@@ -381,10 +381,86 @@
                     ← Orqaga
                 </button>
             </div>
+
+            <!-- PHASE 3: Initial Assessment -->
+            <div id="phase3" class="phase px-8 pb-8">
+                <!-- Loading State -->
+                <div id="assessmentLoading" class="text-center py-10">
+                    <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-indigo-100 mb-6">
+                        <svg class="animate-spin h-10 w-10 text-indigo-600" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+                                fill="none"></circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Test tayyorlanmoqda...</h3>
+                    <p class="text-gray-500">AI sizning bilim darajangizni aniqlash uchun test yaratmoqda</p>
+                    <div class="mt-4 flex justify-center gap-2">
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0s">
+                        </div>
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0.2s">
+                        </div>
+                        <div class="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style="animation-delay: 0.4s">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assessment Questions -->
+                <div id="assessmentQuestions" class="hidden">
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span id="currentSubject" class="text-sm font-semibold text-indigo-600">Fan nomi</span>
+                            <span id="questionCounter" class="text-sm text-gray-500">1 / 6</span>
+                        </div>
+                        <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div id="assessmentProgress"
+                                class="h-full bg-indigo-600 rounded-full transition-all duration-300" style="width: 0%">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="questionContainer" class="mb-6">
+                        <p id="questionText" class="text-lg font-medium text-gray-900 mb-4">Savol matni?</p>
+                        <div id="optionsContainer" class="space-y-3">
+                            <!-- Options dynamically added -->
+                        </div>
+                    </div>
+
+                    <button id="nextQuestionBtn" onclick="nextAssessmentQuestion()"
+                        class="w-full py-4 bg-gray-900 text-white rounded-2xl font-semibold text-lg hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled>
+                        Keyingi savol
+                    </button>
+                </div>
+
+                <!-- Assessment Results -->
+                <div id="assessmentResults" class="hidden text-center py-6">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="text-2xl font-bold text-gray-900 mb-2">Test yakunlandi!</h3>
+                    <p class="text-gray-500 mb-6">Sizning bilim darajangiz aniqlandi</p>
+
+                    <div id="resultsContainer" class="space-y-3 mb-6">
+                        <!-- Results dynamically added -->
+                    </div>
+
+                    <button id="finishBtn" onclick="finishRegistration()"
+                        class="w-full py-4 bg-indigo-600 text-white rounded-2xl font-semibold text-lg hover:bg-indigo-700 transition">
+                        🚀 Davom etish
+                    </button>
+                </div>
+
+                <!-- Skip Option -->
+                <button id="skipAssessmentBtn" onclick="skipAssessment()"
+                    class="w-full py-3 mt-3 text-gray-400 text-sm hover:text-gray-600 transition hidden">
+                    O'tkazib yuborish →
+                </button>
+            </div>
         </div>
 
         <!-- Login Link -->
-        <p class="text-center mt-6 text-gray-500">
+        <p id="loginLink" class="text-center mt-6 text-gray-500">
             Hisobingiz bormi? <a href="/login" class="text-indigo-600 font-semibold hover:underline">Kirish</a>
         </p>
     </div>
@@ -394,17 +470,75 @@
         let currentGoalStep = 1;
         const totalGoalSteps = 3;
 
+        // Assessment state
+        let assessmentData = null;
+        let assessmentQuestions = [];
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let assessmentGenerating = false;
+        let registrationData = null;
+
         const goalStepInfo = {
             1: { title: "Maqsadingiz", desc: "Nimani o'rganmoqchisiz?" },
             2: { title: "Darajangiz", desc: "Hozirgi bilim darajangiz qanday?" },
             3: { title: "Jadvalingiz", desc: "Haftada necha kun o'qiysiz?" }
         };
 
+        // Trigger assessment generation when class is selected
+        document.getElementById('class').addEventListener('change', (e) => {
+            const selectedClass = e.target.value;
+            if (selectedClass && !assessmentGenerating) {
+                console.log('[Register] Class selected, starting assessment generation...');
+                generateAssessment(selectedClass);
+            }
+        });
+
+        // Generate assessment in background
+        async function generateAssessment(grade) {
+            assessmentGenerating = true;
+            try {
+                const res = await fetch('/.netlify/functions/assessKnowledge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grade: parseInt(grade) })
+                });
+
+                if (res.ok) {
+                    assessmentData = await res.json();
+                    console.log('[Register] Assessment generated:', assessmentData);
+                    prepareAssessmentQuestions();
+                } else {
+                    console.error('[Register] Assessment generation failed');
+                    assessmentData = null;
+                }
+            } catch (e) {
+                console.error('[Register] Assessment error:', e);
+                assessmentData = null;
+            }
+            assessmentGenerating = false;
+        }
+
+        // Prepare flat list of questions for assessment
+        function prepareAssessmentQuestions() {
+            assessmentQuestions = [];
+            if (!assessmentData?.subjects) return;
+
+            Object.entries(assessmentData.subjects).forEach(([subjectName, data]) => {
+                data.questions.forEach((q, idx) => {
+                    assessmentQuestions.push({
+                        ...q,
+                        subjectName,
+                        id: `${subjectName}_${idx}`
+                    });
+                });
+            });
+            console.log('[Register] Assessment questions prepared:', assessmentQuestions.length);
+        }
+
         // Phase 1 form submission
         document.getElementById('basicInfoForm').addEventListener('submit', (e) => {
             e.preventDefault();
 
-            // Validate passwords match
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -453,7 +587,7 @@
             document.getElementById('phaseDesc').textContent = goalStepInfo[currentGoalStep].desc;
 
             document.getElementById('goalContinueBtn').textContent =
-                currentGoalStep === totalGoalSteps ? "Ro'yxatdan o'tish" : "Davom etish";
+                currentGoalStep === totalGoalSteps ? "Davom etish" : "Davom etish";
         }
 
         function getGoalStepValue(step) {
@@ -472,7 +606,8 @@
             }
 
             if (currentGoalStep === totalGoalSteps) {
-                submitForm();
+                // Move to Phase 3 (Assessment)
+                moveToAssessment();
                 return;
             }
 
@@ -482,7 +617,6 @@
 
         function prevGoalStep() {
             if (currentGoalStep === 1) {
-                // Go back to Phase 1
                 document.getElementById('phase2').classList.remove('active');
                 document.getElementById('phase1').classList.add('active');
                 document.getElementById('phaseTitle').textContent = "Hisob yarating";
@@ -493,27 +627,213 @@
             }
         }
 
-        async function submitForm() {
-            const btn = document.getElementById('goalContinueBtn');
-            btn.disabled = true;
-            btn.textContent = "Yuklanmoqda...";
+        // Move to Assessment Phase
+        function moveToAssessment() {
+            // Save registration data for later
+            registrationData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                sinf: document.getElementById('class').value,
+                viloyat: document.getElementById('viloyat').value,
+                tuman: document.getElementById('tuman').value,
+                maktab: document.getElementById('maktab').value,
+                goal: document.getElementById('goal').value,
+                level: document.getElementById('level').value,
+                schedule: parseInt(document.getElementById('schedule').value),
+                role: 'student'
+            };
 
-            const event = new CustomEvent('multiStepRegister', {
-                detail: {
-                    name: document.getElementById('name').value,
-                    email: document.getElementById('email').value,
-                    password: document.getElementById('password').value,
-                    sinf: document.getElementById('class').value,
-                    viloyat: document.getElementById('viloyat').value,
-                    tuman: document.getElementById('tuman').value,
-                    maktab: document.getElementById('maktab').value,
-                    goal: document.getElementById('goal').value,
-                    level: document.getElementById('level').value,
-                    schedule: parseInt(document.getElementById('schedule').value),
-                    role: 'student'
+            document.getElementById('phase2').classList.remove('active');
+            document.getElementById('phase3').classList.add('active');
+            document.getElementById('phaseTitle').textContent = "Bilim testi";
+            document.getElementById('phaseDesc').textContent = "Sizning bilim darajangizni aniqlaymiz";
+            document.getElementById('loginLink').classList.add('hidden');
+
+            // Check if assessment is ready
+            if (assessmentQuestions.length > 0) {
+                showAssessmentQuestions();
+            } else if (assessmentGenerating) {
+                // Wait for generation
+                waitForAssessment();
+            } else {
+                // Try generating again or skip
+                generateAssessment(registrationData.sinf);
+                waitForAssessment();
+            }
+        }
+
+        // Wait for assessment to be ready
+        function waitForAssessment() {
+            const checkInterval = setInterval(() => {
+                if (!assessmentGenerating && assessmentQuestions.length > 0) {
+                    clearInterval(checkInterval);
+                    showAssessmentQuestions();
+                } else if (!assessmentGenerating && assessmentQuestions.length === 0) {
+                    // Generation failed, show skip option
+                    clearInterval(checkInterval);
+                    document.getElementById('skipAssessmentBtn').classList.remove('hidden');
+                }
+            }, 500);
+
+            // Timeout after 30 seconds
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                if (assessmentQuestions.length === 0) {
+                    document.getElementById('skipAssessmentBtn').classList.remove('hidden');
+                }
+            }, 30000);
+        }
+
+        // Show assessment questions
+        function showAssessmentQuestions() {
+            document.getElementById('assessmentLoading').classList.add('hidden');
+            document.getElementById('assessmentQuestions').classList.remove('hidden');
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            renderCurrentQuestion();
+        }
+
+        // Render current question
+        function renderCurrentQuestion() {
+            const q = assessmentQuestions[currentQuestionIndex];
+            if (!q) return;
+
+            document.getElementById('currentSubject').textContent = q.subjectName;
+            document.getElementById('questionCounter').textContent =
+                `${currentQuestionIndex + 1} / ${assessmentQuestions.length}`;
+            document.getElementById('assessmentProgress').style.width =
+                `${((currentQuestionIndex + 1) / assessmentQuestions.length) * 100}%`;
+            document.getElementById('questionText').textContent = q.question;
+
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = q.options.map((opt, idx) => `
+                <button type="button" onclick="selectAssessmentOption(${idx})"
+                    class="assessment-option w-full p-4 text-left border-2 border-gray-200 rounded-xl hover:border-indigo-300 transition
+                    ${userAnswers[q.id] === idx ? 'border-indigo-600 bg-indigo-50' : ''}">
+                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-gray-600 font-bold mr-3">
+                        ${['A', 'B', 'C', 'D'][idx]}
+                    </span>
+                    ${opt}
+                </button>
+            `).join('');
+
+            // Update next button
+            const nextBtn = document.getElementById('nextQuestionBtn');
+            nextBtn.disabled = userAnswers[q.id] === undefined;
+            nextBtn.textContent = currentQuestionIndex === assessmentQuestions.length - 1
+                ? "Yakunlash" : "Keyingi savol";
+        }
+
+        // Select option
+        function selectAssessmentOption(optionIndex) {
+            const q = assessmentQuestions[currentQuestionIndex];
+            userAnswers[q.id] = optionIndex;
+            renderCurrentQuestion();
+        }
+
+        // Next question
+        function nextAssessmentQuestion() {
+            if (currentQuestionIndex < assessmentQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderCurrentQuestion();
+            } else {
+                // Assessment complete - calculate results and show
+                calculateAndShowResults();
+            }
+        }
+
+        // Calculate and show results
+        function calculateAndShowResults() {
+            document.getElementById('assessmentQuestions').classList.add('hidden');
+            document.getElementById('assessmentResults').classList.remove('hidden');
+            document.getElementById('phaseTitle').textContent = "Natijalar";
+            document.getElementById('phaseDesc').textContent = "Sizning bilim darajangiz";
+
+            // Calculate scores per subject
+            const subjectScores = {};
+            assessmentQuestions.forEach(q => {
+                if (!subjectScores[q.subjectName]) {
+                    subjectScores[q.subjectName] = { correct: 0, total: 0 };
+                }
+                subjectScores[q.subjectName].total++;
+                if (userAnswers[q.id] === q.correct) {
+                    subjectScores[q.subjectName].correct++;
                 }
             });
+
+            // Calculate levels
+            const resultsContainer = document.getElementById('resultsContainer');
+            const finalResults = {};
+
+            resultsContainer.innerHTML = Object.entries(subjectScores).map(([subject, data]) => {
+                const percent = Math.round((data.correct / data.total) * 100);
+                let level = 'beginner';
+                let levelText = "Boshlang'ich";
+                let levelColor = 'green';
+                let levelEmoji = '🌱';
+
+                if (percent >= 80) {
+                    level = 'advanced';
+                    levelText = 'Yuqori';
+                    levelColor = 'red';
+                    levelEmoji = '🚀';
+                } else if (percent >= 50) {
+                    level = 'intermediate';
+                    levelText = "O'rta";
+                    levelColor = 'yellow';
+                    levelEmoji = '📚';
+                }
+
+                finalResults[subject] = { score: percent, level };
+
+                return `
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <span class="text-2xl">${levelEmoji}</span>
+                            <span class="font-medium text-gray-900">${subject}</span>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-gray-900">${percent}%</div>
+                            <div class="text-sm text-${levelColor}-600">${levelText}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Store results for registration
+            registrationData.assessmentResults = finalResults;
+            registrationData.knowledgeLevels = {};
+            Object.entries(finalResults).forEach(([subject, data]) => {
+                const key = subject.toLowerCase().replace(/\s+/g, '_').replace(/'/g, '');
+                registrationData.knowledgeLevels[key] = data.level;
+            });
+        }
+
+        // Skip assessment
+        function skipAssessment() {
+            // Use default intermediate level
+            registrationData.knowledgeLevels = {};
+            finishRegistration();
+        }
+
+        // Finish registration
+        function finishRegistration() {
+            const btn = document.getElementById('finishBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Yuklanmoqda...";
+            }
+
+            const event = new CustomEvent('multiStepRegister', {
+                detail: registrationData
+            });
             document.dispatchEvent(event);
+        }
+
+        // Legacy submitForm (fallback)
+        async function submitForm() {
+            moveToAssessment();
         }
 
         // Maktablar data loading
